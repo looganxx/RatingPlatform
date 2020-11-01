@@ -1,7 +1,7 @@
 #include <RatingSystemFramework.hpp>
 
 namespace eosio{
-  [[eosio::action]] void RatingSystemFramework::createUser(name user)
+  [[eosio::action]] void RatingSystemFramework::createUser(const name &user)
   {
 
     //?solo chi fa il deploy del contratto può creare l'utente
@@ -21,40 +21,36 @@ namespace eosio{
     });
   }
 
-  [[eosio::action]] void RatingSystemFramework::deleteUser(name user)
+  [[eosio::action]] void RatingSystemFramework::deleteUser(const name &user)
   {
-    //solo chi fa il deploy del contratto può eliminare l'utente
-    require_auth(get_self());
+    require_auth( user );
 
-    //!rivedere i parametri
     userTable users(get_first_receiver(), get_first_receiver().value);
     auto iterator = users.find(user.value);
 
-    //se esiste l'utente => exception
+    //se non esiste l'utente => exception
     check(iterator != users.end(), "user does not exists ");
 
     users.erase(iterator);
   }
 
-  [[eosio::action]] void DatabaseSkill::addSkill(const string &skill)
+  [[eosio::action]] void RatingSystemFramework::addSkill(const string &skill)
   {
-
-    //*solo chi fa il deploy del contratto può creare l'utente
+    //*solo chi fa il deploy del contratto può aggiungere una skill
     require_auth(get_self());
 
     availableSkillsTable skills(get_first_receiver(), get_first_receiver().value);
     auto iterator = skills.find(skill.value);
 
     //se esiste skill non viene aggiunta
-    if (iterator == skills.end())
-    {
-      skills.emplace(""_n, [&](auto &row) {
+    check(iterator == skills.end(), "skill yet exists ");
+    skills.emplace( get_self(), [&](auto &row) {
         row.name = skill;
       });
-    }
   }
+  
 
-  [[eosio::action]] void DatabaseSkill::getSkills()
+  [[eosio::action]] void RatingSystemFramework::getSkills()
   {
     //?chiunque può chiedere il nome di una skill
     require_auth(get_self());
@@ -62,6 +58,6 @@ namespace eosio{
     availableSkillsTable skills(get_first_receiver(), get_first_receiver().value);
 
     //!se funziona così TOP
-    return (skills)
+    //return (skills)
   }
 }

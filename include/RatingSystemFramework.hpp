@@ -14,8 +14,8 @@ namespace eosio{
        databaseSkill(new DatabaseSkill()), functionRegistry(new FunctionRegistry()) {}
 
     //basic
-    [[eosio::action]] void createUser(name user);
-    [[eosio::action]] void deleteUser(name user);
+    [[eosio::action]] void createUser(const name& user);
+    [[eosio::action]] void deleteUser(const name& user);
 
     //da DatabaseSkills
     [[eosio::action]] void addSkill(const string &skill);
@@ -54,7 +54,7 @@ namespace eosio{
     };
 
 
-    struct [[eosio::table]] availableSkills
+    struct [[eosio::table]] function
     {
       std name;
       //TODO: altri parametri relativi
@@ -65,7 +65,7 @@ namespace eosio{
 
     typedef eosio::multi_index<"users"_n, users> usersTable;
     typedef eosio::multi_index<"availableSkills"_n, availableSkills> availableSkillsTable;
-    typedef eosio::multi_index<"availableSkills"_n, availableSkills> availableSkillsTable;
+    typedef eosio::multi_index<"function"_n, function> functionTable;
 
   };
 }
