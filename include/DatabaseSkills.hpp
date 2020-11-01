@@ -11,8 +11,8 @@ namespace eosio
     using contract::contract;
     DatabaseSkills(name receiver, name code, datastream<const char *> ds) : contract(receiver, code, ds) {}
 
-    [[eosio::action]] void addSkill(string skill);
-    [[eosio::action]] Vector<> getSkills(); //?se tornassi un iterator
+    [[eosio::action]] void addSkill(const string& skill);
+    [[eosio::action]] auto getSkills(); //?se tornassi un iterator
 
     using addSkill_action = action_wrapper<"add Skill"_n, &DatabaseSkills::addSkill>;
     using getSkill_action = action_wrapper<"get Skills"_n, &DatabaseSkills::getSkills>;
@@ -21,7 +21,6 @@ namespace eosio
     struct [[eosio::table]] availableSkills
     {
       std name;
-      //TODO: altri parametri relativi
       uint64_t primary_key() const { return name.value; }
     };
 
