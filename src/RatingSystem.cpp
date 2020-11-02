@@ -3,8 +3,6 @@
 namespace eosio{
   [[eosio::action]] void RatingSystem::newuser(const name &user)
   {
-
-    //?solo chi fa il deploy del contratto può creare l'utente
     //!lo possono fare tutti gli utenti (user)
     require_auth(user);
 
@@ -17,7 +15,8 @@ namespace eosio{
 
     //*primo parametro: chi paga per lo storage del nuovo oggetto 
     users.emplace( user , [&](auto &row) {
-      row.username = user;
+      row.uname = user;
+      //row.items.push_back(RatingSystem::item("rist"_n, 10));
     });
   }
 

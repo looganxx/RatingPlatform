@@ -9,7 +9,7 @@ namespace eosio
   public:
     using contract::contract;
     Item(name receiver, name code, datastream<const char *> ds) : contract(receiver, code, ds) {}
-
+/*
     [[eosio::action]] void grantPermission(name to);
     [[eosio::action]] void grantPermission(name to, const asset& amount);
     [[eosio::action]] void revokePermission(name to);
@@ -21,7 +21,7 @@ namespace eosio
     using addRate_action = action_wrapper<"add rate"_n, &Item::addRate>;
     using payItem_action = action_wrapper<"pay item"_n, &Item::payItem>;
     using withdraw_action = action_wrapper<"with draw"_n, &Item::withdraw>;
-
+*/
   private:
     
     /*

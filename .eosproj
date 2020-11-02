@@ -1,5 +1,5 @@
 {
-  "main": "src/RatingSystemFramework.cpp",
+  "main": "src/RatingSystem.cpp",
   "contract": "RatingSystem",
   "include": "",
   "resource": "",

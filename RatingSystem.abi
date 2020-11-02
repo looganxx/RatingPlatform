@@ -1,0 +1,141 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
+    "structs": [
+        {
+            "name": "addskill",
+            "base": "",
+            "fields": [
+                {
+                    "name": "skill",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "availableSkills",
+            "base": "",
+            "fields": [
+                {
+                    "name": "name",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "deluser",
+            "base": "",
+            "fields": [
+                {
+                    "name": "user",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "function",
+            "base": "",
+            "fields": [
+                {
+                    "name": "name",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "getskills",
+            "base": "",
+            "fields": []
+        },
+        {
+            "name": "item_str",
+            "base": "",
+            "fields": [
+                {
+                    "name": "item",
+                    "type": "name"
+                },
+                {
+                    "name": "rating",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "newuser",
+            "base": "",
+            "fields": [
+                {
+                    "name": "user",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "users",
+            "base": "",
+            "fields": [
+                {
+                    "name": "username",
+                    "type": "name"
+                },
+                {
+                    "name": "skill",
+                    "type": "string[]"
+                },
+                {
+                    "name": "item",
+                    "type": "item_str"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "addskill",
+            "type": "addskill",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "deluser",
+            "type": "deluser",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "getskills",
+            "type": "getskills",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "newuser",
+            "type": "newuser",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "function",
+            "type": "function",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "skills",
+            "type": "availableSkills",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "users",
+            "type": "users",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": []
+}
