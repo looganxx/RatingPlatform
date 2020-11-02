@@ -4,6 +4,38 @@
     "types": [],
     "structs": [
         {
+            "name": "additem",
+            "base": "",
+            "fields": [
+                {
+                    "name": "item",
+                    "type": "name"
+                },
+                {
+                    "name": "user",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "addrate",
+            "base": "",
+            "fields": [
+                {
+                    "name": "item",
+                    "type": "name"
+                },
+                {
+                    "name": "user",
+                    "type": "name"
+                },
+                {
+                    "name": "score",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
             "name": "addskill",
             "base": "",
             "fields": [
@@ -18,7 +50,21 @@
             "base": "",
             "fields": [
                 {
-                    "name": "name",
+                    "name": "sname",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "delitem",
+            "base": "",
+            "fields": [
+                {
+                    "name": "item",
+                    "type": "name"
+                },
+                {
+                    "name": "user",
                     "type": "name"
                 }
             ]
@@ -38,7 +84,7 @@
             "base": "",
             "fields": [
                 {
-                    "name": "name",
+                    "name": "fname",
                     "type": "name"
                 }
             ]
@@ -49,15 +95,19 @@
             "fields": []
         },
         {
-            "name": "item_str",
+            "name": "items",
             "base": "",
             "fields": [
                 {
-                    "name": "item",
+                    "name": "iname",
                     "type": "name"
                 },
                 {
-                    "name": "rating",
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "idskill",
                     "type": "uint64"
                 }
             ]
@@ -73,28 +123,57 @@
             ]
         },
         {
+            "name": "ratings",
+            "base": "",
+            "fields": [
+                {
+                    "name": "idrating",
+                    "type": "uint64"
+                },
+                {
+                    "name": "item",
+                    "type": "name"
+                },
+                {
+                    "name": "user",
+                    "type": "name"
+                },
+                {
+                    "name": "score",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
             "name": "users",
             "base": "",
             "fields": [
                 {
-                    "name": "username",
+                    "name": "uname",
                     "type": "name"
-                },
-                {
-                    "name": "skill",
-                    "type": "string[]"
-                },
-                {
-                    "name": "item",
-                    "type": "item_str"
                 }
             ]
         }
     ],
     "actions": [
         {
+            "name": "additem",
+            "type": "additem",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "addrate",
+            "type": "addrate",
+            "ricardian_contract": ""
+        },
+        {
             "name": "addskill",
             "type": "addskill",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "delitem",
+            "type": "delitem",
             "ricardian_contract": ""
         },
         {
@@ -117,6 +196,20 @@
         {
             "name": "function",
             "type": "function",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "item",
+            "type": "items",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "rating",
+            "type": "ratings",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
