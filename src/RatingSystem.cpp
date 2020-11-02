@@ -116,8 +116,11 @@ namespace eosio{
     //!serve il token per votare
     //tabella rating - adding
     ratingsTable rates(get_first_receiver(), get_first_receiver().value);
+    auto it = rates.find((item.value | user.value));
+    check(it == rates.end(), "rating already exists");
+
     rates.emplace(user, [&](auto &row) {
-      row.idrating = rates.available_primary_key();
+      //row.idrating = rates.available_primary_key();
       row.item = item;
       row.user = user;
       row.score = score;
@@ -127,6 +130,18 @@ namespace eosio{
     //?faccio solo +1
     //TODO: va creata prima la tabella contente le skill di user
   }
+
+  [[eosio::action]] void RatingSystem::delrate(const name &item, const name &user){
+    require_auth(user);
+
+    ratingsTable rates(get_first_receiver(), get_first_receiver().value);
+    auto it = rates.begin();
+    while (it != rates.end())
+    {
+      it = rates.erase(it);
+    }
+  }
+
   /*
   [[eosio::action]] void RatingSystem::proviamo(const name &user)
   {

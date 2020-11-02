@@ -70,6 +70,20 @@
             ]
         },
         {
+            "name": "delrate",
+            "base": "",
+            "fields": [
+                {
+                    "name": "item",
+                    "type": "name"
+                },
+                {
+                    "name": "user",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "deluser",
             "base": "",
             "fields": [
@@ -107,8 +121,8 @@
                     "type": "name"
                 },
                 {
-                    "name": "idskill",
-                    "type": "uint64"
+                    "name": "skill",
+                    "type": "name"
                 }
             ]
         },
@@ -127,10 +141,6 @@
             "base": "",
             "fields": [
                 {
-                    "name": "idrating",
-                    "type": "uint64"
-                },
-                {
                     "name": "item",
                     "type": "name"
                 },
@@ -140,6 +150,24 @@
                 },
                 {
                     "name": "score",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "userSkills",
+            "base": "",
+            "fields": [
+                {
+                    "name": "uname",
+                    "type": "name"
+                },
+                {
+                    "name": "skill",
+                    "type": "name"
+                },
+                {
+                    "name": "value",
                     "type": "uint64"
                 }
             ]
@@ -174,6 +202,11 @@
         {
             "name": "delitem",
             "type": "delitem",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "delrate",
+            "type": "delrate",
             "ricardian_contract": ""
         },
         {
@@ -224,6 +257,13 @@
         {
             "name": "users",
             "type": "users",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "userskills",
+            "type": "userSkills",
             "index_type": "i64",
             "key_names": [],
             "key_types": []

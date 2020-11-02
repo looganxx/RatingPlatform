@@ -23,6 +23,7 @@ namespace eosio{
     [[eosio::action]] void delitem(const name &item, const name& user);
 
     [[eosio::action]] void addrate(const name &item, const name &user, const uint64_t &score);
+    [[eosio::action]] void delrate(const name &item, const name &user);
 
     //[[eosio::action]] void proviamo(const name &user);
 
@@ -43,6 +44,7 @@ namespace eosio{
     using delitem_action = action_wrapper<"delitem"_n, &RatingSystem::delitem>;
 
     using addrate_action = action_wrapper<"addrate"_n, &RatingSystem::addrate>;
+    using delrate_action = action_wrapper<"delrate"_n, &RatingSystem::delrate>;
 
     using addSkill_action = action_wrapper<"addskill"_n, &RatingSystem::addskill>;
     using getSkill_action = action_wrapper<"getskills"_n, &RatingSystem::getskills>;
@@ -69,23 +71,23 @@ namespace eosio{
       name iname; //*PK
 
       name owner; //*FK
-      uint64_t idskill; //*FK
+      name skill; //*FK
 
       uint64_t primary_key() const { return iname.value; }
       uint64_t by_secondary() const { return owner.value; }
-      uint64_t by_tertiary() const { return idskill; }
+      uint64_t by_tertiary() const { return skill.value; }
     };
 
 
     struct [[eosio::table]] ratings
     {
-      uint64_t idrating; //*PK
+      //uint64_t idrating; //*PK
 
       name item; //*FK
       name user; //*PK
       uint64_t score;
 
-      uint64_t primary_key() const { return idrating; }
+      uint64_t primary_key() const { return (item.value | user.value); }
       uint64_t by_secondary() const { return item.value; }
       uint64_t by_tertiary() const { return user.value; }
     };
@@ -95,6 +97,17 @@ namespace eosio{
       name sname; //*PK 
       
       uint64_t primary_key() const { return sname.value; }
+    };
+
+    struct [[eosio::table]] userSkills
+    {
+      //uint64_t iduskill; //*PK
+      //!chiave a doppio campo?
+      name uname; //*FK
+      name skill; //*FK
+      uint64_t value; 
+
+      uint64_t primary_key() const { return (uname.value | skill.value); }
     };
 
 
@@ -108,6 +121,8 @@ namespace eosio{
 
 
     typedef eosio::multi_index<"users"_n, users> usersTable;
+
+    typedef eosio::multi_index<"userskills"_n, userSkills> userSkillsTable;
 
     typedef eosio::multi_index<
         "item"_n, items,
