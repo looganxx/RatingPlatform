@@ -72,6 +72,8 @@ namespace eosio{
 
       name owner; //*FK
       name skill; //*FK
+      //bool active; 
+      //flag per disattivare
 
       uint64_t primary_key() const { return iname.value; }
       uint64_t by_secondary() const { return owner.value; }
@@ -81,13 +83,13 @@ namespace eosio{
 
     struct [[eosio::table]] ratings
     {
-      //uint64_t idrating; //*PK
+      uint64_t idrating; //*PK
 
       name item; //*FK
-      name user; //*PK
-      uint64_t score;
+      name user; //*FK
+      uint64_t score; //il più giovane
 
-      uint64_t primary_key() const { return (item.value | user.value); }
+      uint64_t primary_key() const { return idrating; }
       uint64_t by_secondary() const { return item.value; }
       uint64_t by_tertiary() const { return user.value; }
     };
@@ -101,13 +103,13 @@ namespace eosio{
 
     struct [[eosio::table]] userSkills
     {
-      //uint64_t iduskill; //*PK
-      //!chiave a doppio campo?
+      uint64_t iduskill; //*PK
+
       name uname; //*FK
       name skill; //*FK
-      uint64_t value; 
+      uint64_t value;
 
-      uint64_t primary_key() const { return (uname.value | skill.value); }
+      uint64_t primary_key() const { return iduskill; }
     };
 
 
@@ -131,7 +133,7 @@ namespace eosio{
         itemsTable;
 
     typedef eosio::multi_index<
-        "rating"_n, ratings,
+        "ratings"_n, ratings,
         indexed_by<"byitem"_n, const_mem_fun<ratings, uint64_t, &ratings::by_secondary>>,
         indexed_by<"byuser"_n, const_mem_fun<ratings, uint64_t, &ratings::by_tertiary>>>
         ratingsTable;

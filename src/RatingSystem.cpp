@@ -52,6 +52,7 @@ namespace eosio{
     items.emplace(user, [&](auto &row) {
       row.iname = item;
       row.owner = user;
+      //row.active = true;
     });
   }
 
@@ -63,8 +64,10 @@ namespace eosio{
     auto iter = items.find(item.value);
     check(iter != items.end(), "item does not exists");
     check(iter->owner == user, user.to_string() + " is not the owner");
-
-    items.erase(iter);
+    /*
+    items.modify(iter, user, [&](auto &row) {
+      row.active = false;
+    });*/
   }
 
   [[eosio::action]] void RatingSystem::addskill(const string &skill)
@@ -79,7 +82,7 @@ namespace eosio{
     check(iterator == skills.end(), "skill yet exists");
     skills.emplace( get_self(), [&](auto &row) {
         row.sname = name{skill};
-      });
+    });
   }
 
   [[eosio::action]] void RatingSystem::getskills()
@@ -98,7 +101,7 @@ namespace eosio{
     require_auth(user);
 
     //giusto per ricordare che valore ha lo score
-    check(score >=0 && score<=5, "invalide score value");
+    check(score >=0 && score<=10, "invalide score value");
     
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
@@ -112,19 +115,31 @@ namespace eosio{
     //controllo user non voti i suoi item
     check(user != iter->owner, "you can't vote your item!");
 
-
+    
     //!serve il token per votare
     //tabella rating - adding
     ratingsTable rates(get_first_receiver(), get_first_receiver().value);
-    auto it = rates.find((item.value | user.value));
-    check(it == rates.end(), "rating already exists");
-
-    rates.emplace(user, [&](auto &row) {
-      //row.idrating = rates.available_primary_key();
-      row.item = item;
-      row.user = user;
-      row.score = score;
-    });
+    auto it = rates.get_index<"byitem"_n>();
+    auto i = it.find(item.value);
+    if(i!=it.end()){
+      //*controllo se c'è già un rate dell'utente
+      while (i != it.end() && i->item == item && i->user != user) {i++;}
+    }
+    if (i == it.end() || i->item != item){
+      rates.emplace(user, [&](auto &row) {
+        row.idrating = rates.available_primary_key();
+        row.item = item;
+        row.user = user;
+        row.score = score;
+      });
+    }else if (i->user == user){
+      uint64_t index = i->idrating;
+      auto mod = rates.find(index);
+      //aggiorno score
+      rates.modify(mod, user, [&](auto &row) {
+        row.score = score;
+      });
+    }
 
     //TODO: aggiornare il punteggio utente
     //?faccio solo +1
@@ -134,12 +149,26 @@ namespace eosio{
   [[eosio::action]] void RatingSystem::delrate(const name &item, const name &user){
     require_auth(user);
 
+    itemsTable items(get_first_receiver(), get_first_receiver().value);
+    auto iter = items.find(item.value);
+    check(iter != items.end(), "item does not exists");
+
+    usersTable users(get_first_receiver(), get_first_receiver().value);
+    auto iterator = users.find(user.value);
+    //se non esiste l'utente => exception
+    check(iterator != users.end(), "user does not exists");
+
     ratingsTable rates(get_first_receiver(), get_first_receiver().value);
-    auto it = rates.begin();
-    while (it != rates.end())
-    {
-      it = rates.erase(it);
-    }
+    auto it = rates.get_index<"byitem"_n>();
+    auto i = it.find(item.value);
+    check(i != it.end(), "rate does not exists");
+    
+    while (i != it.end() && i->item == item && i->user != user){i++;}
+    check(i != it.end() && i->item == item && i->user == user, "rate does not exists");
+    uint64_t index = i->idrating;
+    auto el = rates.find(index);
+    rates.erase(el);
+      
   }
 
   /*
@@ -148,7 +177,7 @@ namespace eosio{
     require_auth(user);
     //!addresses.available_primary_key();
     //print("Hello ", name{user});
-    /*
+    
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.get_index<"byowner"_n>();
     //check(iter != items.end(), "mannaia");

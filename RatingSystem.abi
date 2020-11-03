@@ -141,6 +141,10 @@
             "base": "",
             "fields": [
                 {
+                    "name": "idrating",
+                    "type": "uint64"
+                },
+                {
                     "name": "item",
                     "type": "name"
                 },
@@ -158,6 +162,10 @@
             "name": "userSkills",
             "base": "",
             "fields": [
+                {
+                    "name": "iduskill",
+                    "type": "uint64"
+                },
                 {
                     "name": "uname",
                     "type": "name"
@@ -241,7 +249,7 @@
             "key_types": []
         },
         {
-            "name": "rating",
+            "name": "ratings",
             "type": "ratings",
             "index_type": "i64",
             "key_names": [],
