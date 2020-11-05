@@ -19,6 +19,7 @@ namespace eosio{
     //*primo parametro: chi paga per lo storage del nuovo oggetto 
     users.emplace( user , [&](auto &row) {
       row.uname = user;
+      row.active = true;
     });
   }
 
@@ -32,10 +33,12 @@ namespace eosio{
     //se non esiste l'utente => exception
     check(iterator != users.end(), "user does not exists");
 
-    users.erase(iterator);
+    users.modify(iterator, user, [&](auto &row) {
+      row.active = false;
+    });
   }
 
-  [[eosio::action]] void RatingSystem::additem(const name &item, const name &user)
+  [[eosio::action]] void RatingSystem::additem(const name &item, const name &user, const name &skill)
   {
     require_auth(user);
 
@@ -43,45 +46,59 @@ namespace eosio{
     auto iterator = users.find(user.value);
     //se non esiste l'utente => exception
     check(iterator != users.end(), "user does not exists");
+    check(iterator->active == true, "this user is not active");
 
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
     check(iter == items.end(), "item already exists");
 
+    skillsTable skills(get_first_receiver(), get_first_receiver().value);
+    auto it_skills = skills.find(skill.value);
+    check(it_skills != skills.end(), "skill does not exists");
+
     //*primo parametro: chi paga per lo storage del nuovo oggetto
     items.emplace(user, [&](auto &row) {
       row.iname = item;
       row.owner = user;
-      //row.active = true;
+      row.skill = skill;
+      row.active = true;
     });
   }
 
   [[eosio::action]] void RatingSystem::delitem(const name &item, const name &user)
   {
     require_auth(user);
-
+  
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
     check(iter != items.end(), "item does not exists");
     check(iter->owner == user, user.to_string() + " is not the owner");
-    /*
+
+    //controllo se user è attivo
+    usersTable users(get_first_receiver(), get_first_receiver().value);
+    auto iterator = users.find(user.value);
+    check(iterator->active == true, "this user is no longer active");
+
+    //items.erase(iter);
+    
     items.modify(iter, user, [&](auto &row) {
       row.active = false;
-    });*/
+    });
   }
 
-  [[eosio::action]] void RatingSystem::addskill(const string &skill)
+  [[eosio::action]] void RatingSystem::addskill(const name &skill)
   {
     //*solo chi fa il deploy del contratto può aggiungere una skill
     require_auth(get_self());
 
     skillsTable skills(get_first_receiver(), get_first_receiver().value);
-    auto iterator = skills.find(name{skill}.value);
+    auto iterator = skills.find(skill.value);
 
     //se esiste skill non viene aggiunta
     check(iterator == skills.end(), "skill yet exists");
+
     skills.emplace( get_self(), [&](auto &row) {
-        row.sname = name{skill};
+        row.sname = skill;
     });
   }
 
@@ -106,11 +123,15 @@ namespace eosio{
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
     check(iter != items.end(), "item does not exists");
+    check(iter->active == 1, "item not active");
+    name i_skill = iter->skill;
 
     usersTable users(get_first_receiver(), get_first_receiver().value);
     auto iterator = users.find(user.value);
     //se non esiste l'utente => exception
     check(iterator != users.end(), "user does not exists");
+    //controllo se user è ancora attivo
+    check(iterator->active == true, "this user is no longer active");
 
     //controllo user non voti i suoi item
     check(user != iter->owner, "you can't vote your item!");
@@ -121,10 +142,10 @@ namespace eosio{
     ratingsTable rates(get_first_receiver(), get_first_receiver().value);
     auto it = rates.get_index<"byitem"_n>();
     auto i = it.find(item.value);
-    if(i!=it.end()){
+    //if(i!=it.end()){
       //*controllo se c'è già un rate dell'utente
       while (i != it.end() && i->item == item && i->user != user) {i++;}
-    }
+    //}
     if (i == it.end() || i->item != item){
       rates.emplace(user, [&](auto &row) {
         row.idrating = rates.available_primary_key();
@@ -132,7 +153,7 @@ namespace eosio{
         row.user = user;
         row.score = score;
       });
-    }else if (i->user == user){
+    }else{
       uint64_t index = i->idrating;
       auto mod = rates.find(index);
       //aggiorno score
@@ -141,14 +162,44 @@ namespace eosio{
       });
     }
 
-    //TODO: aggiornare il punteggio utente
-    //?faccio solo +1
-    //TODO: va creata prima la tabella contente le skill di user
+    //!come notify? 
+    //require_auth(user);
+    //!so già che esiste user e la skill
+    
+    //controllo se non esiste già lo stesso campo
+    userSkillsTable userskills(get_first_receiver(), get_first_receiver().value);
+    auto it_s = userskills.get_index<"byuser"_n>();
+    auto i_s = it_s.find(user.value);
+    
+    while (i_s != it_s.end() && i_s->uname == user && i_s->skill != i_skill)
+    {
+      i_s++;
+    }
+
+    if (i_s == it_s.end() || i_s->uname != user)
+    { //creare una nuova row
+      userskills.emplace(get_self(), [&](auto &row) {
+        row.iduskill = userskills.available_primary_key();
+        row.uname = user;
+        row.skill = i_skill;
+        row.value = 1;
+      });
+    }
+    else
+    { //aggiornare row già esistente
+      uint64_t index_s = i_s->iduskill;
+      auto mod_s = userskills.find(index_s);
+
+      userskills.modify(mod_s, user, [&](auto &row) {
+        if (row.value != 10)
+          row.value++;
+      });
+    }
   }
 
   [[eosio::action]] void RatingSystem::delrate(const name &item, const name &user){
     require_auth(user);
-
+    
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
     check(iter != items.end(), "item does not exists");
@@ -157,6 +208,7 @@ namespace eosio{
     auto iterator = users.find(user.value);
     //se non esiste l'utente => exception
     check(iterator != users.end(), "user does not exists");
+    check(iterator->active == true, "this user is no longer active");
 
     ratingsTable rates(get_first_receiver(), get_first_receiver().value);
     auto it = rates.get_index<"byitem"_n>();
@@ -172,8 +224,13 @@ namespace eosio{
   }
 
   /*
-  [[eosio::action]] void RatingSystem::proviamo(const name &user)
+  [[eosio::action]] void RatingSystem::proviamo(const name &i)
   {
+    skillsTable items(get_first_receiver(), get_first_receiver().value);
+    auto it_s = items.find(i.value);
+    items.erase(it_s);
+
+    /*
     require_auth(user);
     //!addresses.available_primary_key();
     //print("Hello ", name{user});
@@ -190,6 +247,6 @@ namespace eosio{
     print(next->iname.to_string() + " " + next->owner.to_string() + "\n");
     next++;
     print(next->iname.to_string() + " " + next->owner.to_string() + "\n");
-    //}
+    //}*/
   }*/
 }

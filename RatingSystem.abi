@@ -14,6 +14,10 @@
                 {
                     "name": "user",
                     "type": "name"
+                },
+                {
+                    "name": "skill",
+                    "type": "name"
                 }
             ]
         },
@@ -41,7 +45,7 @@
             "fields": [
                 {
                     "name": "skill",
-                    "type": "string"
+                    "type": "name"
                 }
             ]
         },
@@ -123,6 +127,10 @@
                 {
                     "name": "skill",
                     "type": "name"
+                },
+                {
+                    "name": "active",
+                    "type": "bool"
                 }
             ]
         },
@@ -132,6 +140,16 @@
             "fields": [
                 {
                     "name": "user",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "proviamo",
+            "base": "",
+            "fields": [
+                {
+                    "name": "i",
                     "type": "name"
                 }
             ]
@@ -187,6 +205,10 @@
                 {
                     "name": "uname",
                     "type": "name"
+                },
+                {
+                    "name": "active",
+                    "type": "bool"
                 }
             ]
         }
@@ -230,6 +252,11 @@
         {
             "name": "newuser",
             "type": "newuser",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "proviamo",
+            "type": "proviamo",
             "ricardian_contract": ""
         }
     ],
