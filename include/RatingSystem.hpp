@@ -1,7 +1,9 @@
 #pragma once
 
 #include <eosio/eosio.hpp>
-
+#include <eosio/asset.hpp>
+#include <eosio/symbol.hpp>
+#include <eosio.token/eosio.token.hpp>
 
 using namespace std;
 
@@ -21,25 +23,30 @@ namespace eosio{
     //da item
     //va aggiunto il codice per pagare
     [[eosio::action]] void additem(const name &item, const name& user, const name& skill);
-    [[eosio::action]] void delitem(const name &item, const name& user);
+    [[eosio::action]] void delitem(const name &item, const name& owner);
 
-    [[eosio::action]] void addrate(const name &item, const name &user, const uint64_t &score);
+    [[eosio::action]] void addrate(const name &item, const name& user, const uint64_t &score);
     [[eosio::action]] void delrate(const name &item, const name &user);
 
-    //[[eosio::action]] void proviamo(const name &i);
+    [[eosio::action]] void proviamo(const name &i);
 
     //da DatabaseSkills
     [[eosio::action]] void addskill(const name &skill);
     [[eosio::action]] void getskills(); //?se tornassi un iterator
 
-    [[eosio::action]] void payperm(const name &item, const name &user, const asset& bill);
-    [[eosio::action]] void payitem(const name &item, const name &user, const asset& quantity);
+    [[eosio::action]] void payperm(const name &item, const name &owner, const name &client, const asset &bill);
+    [[eosio::action]] void payitem(const uint64_t &idpay, const name &user, const asset &quantity);
 
+    [[eosio::action]] void notify(const name& user, const string& message)
+    {
+      require_auth(get_self());
+      require_recipient(user);
+    }
     //da FunctionRegistry
     //[[eosio::action]] void getFunction(id);
     //[[eosio::action]] void pushFunction(function, id);
 
-    //using prova_action = action_wrapper<"prova"_n, &RatingSystem::proviamo>;
+    using prova_action = action_wrapper<"prova"_n, &RatingSystem::proviamo>;
 
     using newuser_action = action_wrapper<"newuser"_n, &RatingSystem::newuser>;
     using deluser_action = action_wrapper<"deluser"_n, &RatingSystem::deluser>;
@@ -54,7 +61,7 @@ namespace eosio{
     using getSkill_action = action_wrapper<"getskills"_n, &RatingSystem::getskills>;
 
     using payperm_action = action_wrapper<"payperm"_n, &RatingSystem::payperm>;
-    using payitem_action = action_wrapper<"payitem"_n, &RatingSystem::payitem>;
+    //using payitem_action = action_wrapper<"payitem"_n, &RatingSystem::payitem>;
 
     //using getFunction_action = action_wrapper<"get_Function"_n, &RatingSystem::getFunction>;
     //using pushFunction_action = action_wrapper<"push_Function"_n, &RatingSystem::pushFunction>;
@@ -66,6 +73,40 @@ namespace eosio{
     } item;*/
 
   private:
+    static void check_user(const name &user, const name& gfr)
+    {
+      usersTable users(gfr, gfr.value);
+      auto iterator = users.find(user.value);
+      //se non esiste l'utente => exception
+      check(iterator != users.end(), "user does not exists");
+      //se l'utente non è più attivo => exception
+      check(iterator->active == true, "this user is no longer active");
+    }
+
+    static void check_item(const name &item, const name &gfr)
+    {
+      itemsTable items(gfr, gfr.value);
+      auto iter = items.find(item.value);
+      //se item non esiste => exception
+      check(iter != items.end(), "item does not exists");
+      //se item non è più attivo => exception
+      check(iter->active == 1, "item not active");
+    }
+
+    void send_notify(const name& user, const string& message)
+    {
+      action(
+        //permission_level,
+        permission_level{get_self(), "active"_n},
+        //code,
+        get_self(),
+        //action,
+        "notify"_n,
+        //data
+        std::make_tuple(user, message))
+        .send();
+    }
+
     struct [[eosio::table]] users
     {
       name uname; //*PKit
@@ -112,13 +153,13 @@ namespace eosio{
       uint64_t idpay; //*PK
 
       name iname; //*FK
-      name uname; //*FK
+      name client; //*FK
       asset bill;
       bool payed;
 
       uint64_t primary_key() const { return idpay; }
       uint64_t by_secondary() const { return iname.value; }
-      uint64_t by_tertiary() const { return uname.value; }
+      uint64_t by_tertiary() const { return client.value; }
     };
 
     struct [[eosio::table]] ratings
@@ -152,7 +193,7 @@ namespace eosio{
       userSkillsTable;
 
     typedef eosio::multi_index<
-      "item"_n, items,
+      "items"_n, items,
       indexed_by<"byowner"_n, const_mem_fun<items, uint64_t, &items::by_secondary>>,
       indexed_by<"byskill"_n, const_mem_fun<items, uint64_t, &items::by_tertiary>>>
       itemsTable;

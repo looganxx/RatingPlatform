@@ -8,7 +8,7 @@ namespace eosio{
   {
     //!lo possono fare tutti gli utenti (user)
     require_auth(user);
-
+    check(is_account(user), "to account does not exist");
     //!rivedere i parametri
     usersTable users(get_first_receiver(), get_first_receiver().value);
     auto iterator = users.find(user.value);
@@ -21,32 +21,35 @@ namespace eosio{
       row.uname = user;
       row.active = true;
     });
+
+    //creo un account per depositare la moneta con balance=0
+    token::open_action open_user("eosio.token"_n, {get_self(), "active"_n});
+    auto symbol_t = symbol("EOS", 0);
+    open_user.send(user, symbol_t, get_self());
   }
 
   [[eosio::action]] void RatingSystem::deluser(const name &user)
   {
     require_auth( user );
 
-    usersTable users(get_first_receiver(), get_first_receiver().value);
+    usersTable users(user, user.value);
     auto iterator = users.find(user.value);
-
     //se non esiste l'utente => exception
     check(iterator != users.end(), "user does not exists");
+    //se l'utente non è più attivo => exception
+    check(iterator->active == true, "this user is no longer active");
 
     users.modify(iterator, user, [&](auto &row) {
       row.active = false;
     });
+    //?devo ritirare il balance quando viene disabilitato un utente?
   }
 
-  [[eosio::action]] void RatingSystem::additem(const name &item, const name &user, const name &skill)
+  [[eosio::action]] void RatingSystem::additem(const name &item, const name& user, const name &skill)
   {
     require_auth(user);
 
-    usersTable users(get_first_receiver(), get_first_receiver().value);
-    auto iterator = users.find(user.value);
-    //se non esiste l'utente => exception
-    check(iterator != users.end(), "user does not exists");
-    check(iterator->active == true, "this user is not active");
+    check_user(user, get_first_receiver());
 
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
@@ -65,23 +68,20 @@ namespace eosio{
     });
   }
 
-  [[eosio::action]] void RatingSystem::delitem(const name &item, const name &user)
+  [[eosio::action]] void RatingSystem::delitem(const name &item, const name& owner)
   {
-    require_auth(user);
+    require_auth(owner);
   
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
     check(iter != items.end(), "item does not exists");
-    check(iter->owner == user, user.to_string() + " is not the owner");
+    check(iter->owner == owner, owner.to_string() + " is not the owner");
 
-    //controllo se user è attivo
-    usersTable users(get_first_receiver(), get_first_receiver().value);
-    auto iterator = users.find(user.value);
-    check(iterator->active == true, "this user is no longer active");
+    check_user(owner, get_first_receiver());
 
     //items.erase(iter);
     
-    items.modify(iter, user, [&](auto &row) {
+    items.modify(iter, owner, [&](auto &row) {
       row.active = false;
     });
   }
@@ -95,7 +95,7 @@ namespace eosio{
     auto iterator = skills.find(skill.value);
 
     //se esiste skill non viene aggiunta
-    check(iterator == skills.end(), "skill yet exists");
+    check(iterator == skills.end(), "skill already exists");
 
     skills.emplace( get_self(), [&](auto &row) {
         row.sname = skill;
@@ -113,25 +113,20 @@ namespace eosio{
     //return (skills)
   }
 
-  [[eosio::action]] void RatingSystem::addrate(const name &item, const name &user, const uint64_t &score)
+  [[eosio::action]] void RatingSystem::addrate(const name &item, const name& user, const uint64_t &score)
   {
     require_auth(user);
 
     //giusto per ricordare che valore ha lo score
     check(score >=0 && score<=10, "invalide score value");
-    
+
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
     check(iter != items.end(), "item does not exists");
     check(iter->active == 1, "item not active");
     name i_skill = iter->skill;
 
-    usersTable users(get_first_receiver(), get_first_receiver().value);
-    auto iterator = users.find(user.value);
-    //se non esiste l'utente => exception
-    check(iterator != users.end(), "user does not exists");
-    //controllo se user è ancora attivo
-    check(iterator->active == true, "this user is no longer active");
+    check_user(user, get_first_receiver());
 
     //controllo user non voti i suoi item
     check(user != iter->owner, "you can't vote your item!");
@@ -204,11 +199,7 @@ namespace eosio{
     auto iter = items.find(item.value);
     check(iter != items.end(), "item does not exists");
 
-    usersTable users(get_first_receiver(), get_first_receiver().value);
-    auto iterator = users.find(user.value);
-    //se non esiste l'utente => exception
-    check(iterator != users.end(), "user does not exists");
-    check(iterator->active == true, "this user is no longer active");
+    check_user(user, get_first_receiver());
 
     ratingsTable rates(get_first_receiver(), get_first_receiver().value);
     auto it = rates.get_index<"byitem"_n>();
@@ -223,12 +214,88 @@ namespace eosio{
       
   }
 
-  /*
+  [[eosio::action]] void RatingSystem::payperm(const name &item, const name &owner, const name &client, const asset &bill)
+  {
+    /**
+     * il proprietario dell'item può usare questa azione
+     * controllo che esista il cliente e che non sia disattivato
+     * controllo sulla valuta di bill
+     */
+    require_auth(owner);
+
+    check_user(owner, get_first_receiver());
+
+    itemsTable items(get_first_receiver(), get_first_receiver().value);
+    auto iter = items.find(item.value);
+    check(iter != items.end(), "item does not exists");
+    check(iter->active == 1, "item not active");
+    check(iter->owner == owner, owner.to_string() + " is not the owner");
+
+    check_user(client, get_first_receiver());
+
+    auto sym = bill.symbol;
+    check(sym.is_valid(), "invalid symbol name");
+    check( bill.is_valid(), "invalid quantity" );
+    check( bill.amount > 0, "bill must be a positive quantity" );
+    //check( bill.symbol == st.supply.symbol, "symbol precision mismatch" );
+    //?altri controlli su quantity
+
+    paymentsTable payments(get_first_receiver(), get_first_receiver().value);
+    uint64_t code = payments.available_primary_key();
+        payments.emplace(get_self(), [&](auto &row) {
+          row.idpay = code;
+          row.iname = item;
+          row.client = client;
+          row.bill = bill;
+          row.payed = 0;
+        });
+
+    //TODO mandare id all'utente
+    send_notify(client, "code: " + to_string(code) + ", bill: " + bill.to_string());
+  }
+
+  [[eosio::action]] void RatingSystem::payitem(const uint64_t& idpay , const name &user, const asset &quantity){
+    require_auth(user);
+    /**
+     * cerco se l'utente esiste ecc
+     * controllo quantity se rispetta i valori
+     * cerco nella tabella payment e controllo che payed non sia true
+     * effettua pagamento
+     * setta a true payed
+     */
+
+    check_user(user, get_first_receiver());
+
+    paymentsTable payments(get_first_receiver(), get_first_receiver().value);
+    auto it = payments.find(idpay);
+    check(it != payments.end(), "bill does not exists");
+    check (it->payed == false, "bill already payed");
+    check(it->bill == quantity, "please insert the correct value to pay");
+    check(it->client == user, "you have not to pay");
+
+    itemsTable items(get_first_receiver(), get_first_receiver().value);
+    auto iter = items.find((it->iname).value);
+    name owner = iter->owner;
+
+    check_user(owner, get_first_receiver());
+
+    send_notify(owner, name{user}.to_string() + " has payed " + quantity.to_string() +
+                           " to the bill with code " + to_string(idpay));
+                           
+    token::transfer_action transfer("eosio.token"_n, {user, "active"_n});
+    //trasferisco il denaro da user->owner
+    transfer.send(user, owner , quantity, "");
+    payments.modify(it, get_self(), [&](auto &row) {
+      row.payed = true;
+    });
+    
+  }
+ 
   [[eosio::action]] void RatingSystem::proviamo(const name &i)
   {
-    skillsTable items(get_first_receiver(), get_first_receiver().value);
-    auto it_s = items.find(i.value);
-    items.erase(it_s);
+    usersTable users(get_first_receiver(), get_first_receiver().value);
+    auto it_s = users.find(i.value);
+    users.erase(it_s);
 
     /*
     require_auth(user);
@@ -248,5 +315,5 @@ namespace eosio{
     next++;
     print(next->iname.to_string() + " " + next->owner.to_string() + "\n");
     //}*/
-  }*/
+  }
 }
