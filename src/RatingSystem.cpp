@@ -113,53 +113,38 @@ namespace eosio{
     //return (skills)
   }
 
-  [[eosio::action]] void RatingSystem::addrate(const name &item, const name& user, const uint64_t &score)
+  [[eosio::action]] void RatingSystem::addrate(const uint64_t &idpayment, const name &user, const uint64_t &score)
   {
     require_auth(user);
+    check_user(user, get_first_receiver());
 
-    //giusto per ricordare che valore ha lo score
     check(score >=0 && score<=10, "invalide score value");
+
+    paymentsTable payments(get_first_receiver(), get_first_receiver().value);
+    auto id = payments.find(idpayment);
+    check (id->payed ==true, "bill not payed");
+    check(id->client == user, "you can't rate this item, this is not youre bill");
+    name item = id->iname;
 
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
     check(iter != items.end(), "item does not exists");
-    check(iter->active == 1, "item not active");
+    check(iter->active == 1, "item no longer active");
     name i_skill = iter->skill;
-
-    check_user(user, get_first_receiver());
 
     //controllo user non voti i suoi item
     check(user != iter->owner, "you can't vote your item!");
 
-    
-    //!serve il token per votare
-    //tabella rating - adding
     ratingsTable rates(get_first_receiver(), get_first_receiver().value);
-    auto it = rates.get_index<"byitem"_n>();
-    auto i = it.find(item.value);
-    //if(i!=it.end()){
-      //*controllo se c'è già un rate dell'utente
-      while (i != it.end() && i->item == item && i->user != user) {i++;}
-    //}
-    if (i == it.end() || i->item != item){
-      rates.emplace(user, [&](auto &row) {
-        row.idrating = rates.available_primary_key();
-        row.item = item;
-        row.user = user;
-        row.score = score;
-      });
-    }else{
-      uint64_t index = i->idrating;
-      auto mod = rates.find(index);
-      //aggiorno score
-      rates.modify(mod, user, [&](auto &row) {
-        row.score = score;
-      });
-    }
+    auto it = rates.find(idpayment);
+    check(it == rates.end(), "you already rate it");
+    rates.emplace(user, [&](auto &row) {
+      row.idrating = idpayment;
+      row.item = item;
+      row.user = user;
+      row.score = score;
+    }); 
 
-    //!come notify? 
-    //require_auth(user);
-    //!so già che esiste user e la skill
     
     //controllo se non esiste già lo stesso campo
     userSkillsTable userskills(get_first_receiver(), get_first_receiver().value);
@@ -224,6 +209,7 @@ namespace eosio{
     require_auth(owner);
 
     check_user(owner, get_first_receiver());
+    check(owner != client, "owner and client must be different");
 
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
@@ -242,13 +228,13 @@ namespace eosio{
 
     paymentsTable payments(get_first_receiver(), get_first_receiver().value);
     uint64_t code = payments.available_primary_key();
-        payments.emplace(get_self(), [&](auto &row) {
-          row.idpay = code;
-          row.iname = item;
-          row.client = client;
-          row.bill = bill;
-          row.payed = 0;
-        });
+    payments.emplace(get_self(), [&](auto &row) {
+      row.idpay = code;
+      row.iname = item;
+      row.client = client;
+      row.bill = bill;
+      row.payed = 0;
+    });
 
     //TODO mandare id all'utente
     send_notify(client, "code: " + to_string(code) + ", bill: " + bill.to_string());
@@ -281,7 +267,7 @@ namespace eosio{
 
     send_notify(owner, name{user}.to_string() + " has payed " + quantity.to_string() +
                            " to the bill with code " + to_string(idpay));
-                           
+
     token::transfer_action transfer("eosio.token"_n, {user, "active"_n});
     //trasferisco il denaro da user->owner
     transfer.send(user, owner , quantity, "");

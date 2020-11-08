@@ -14,25 +14,69 @@ namespace eosio{
   public:
     using contract::contract;
 
+    //constructor
     RatingSystem(name receiver, name code, datastream<const char *> ds) : contract(receiver, code, ds){}
 
-    //basic
+    /**
+     * @brief   Create a new user. If succesfully created, then a new entry in the user table is created.
+     * 
+     * @param user: Eosio's name of the user who want to create an account in RS.
+     * 
+     * @pre   User has to have an eosio account.
+     */
     [[eosio::action]] void newuser(const name& user);
+
+    /**
+     * @brief   Deactivate the user. The "active" bool variable will set to false. 
+     * 
+     * @param user: Eosio's name of the user who want to deactivate their own account in RS.
+     * 
+     * @pre  User has to have an RS account.
+     */
     [[eosio::action]] void deluser(const name& user);
 
-    //da item
-    //va aggiunto il codice per pagare
+    /**
+     * @brief   Allow an user to create his own item.
+     * 
+     * @param item: New item's name.
+     * @param user: Name of the account who wants to create the item.
+     * @param skill: Name of the skill that owns the item. 
+     * 
+     * @pre  User has to have an RS account.
+     */
     [[eosio::action]] void additem(const name &item, const name& user, const name& skill);
+
+    /**
+     * @brief Deactivate the item. The "active" bool variable will set to false.
+     * 
+     * @param item: Name of the item to deactivate.
+     * @param owner:  Name of the item's owner. 
+     * 
+     * @pre Owner has to be the item's holder
+     */
     [[eosio::action]] void delitem(const name &item, const name& owner);
 
-    [[eosio::action]] void addrate(const name &item, const name& user, const uint64_t &score);
+    /**
+     * @brief Allows RS account to add a new skill in the skills DB
+     * 
+     * @param skill 
+     */
+    [[eosio::action]] void addskill(const name &skill);
+    [[eosio::action]] void getskills(); //?se tornassi un iterator
+
+
+    /**
+     * @brief 
+     * 
+     * @param idpayment 
+     * @param user 
+     * @param score 
+     */
+    [[eosio::action]] void addrate(const uint64_t &idpayment, const name& user, const uint64_t &score);
     [[eosio::action]] void delrate(const name &item, const name &user);
 
     [[eosio::action]] void proviamo(const name &i);
 
-    //da DatabaseSkills
-    [[eosio::action]] void addskill(const name &skill);
-    [[eosio::action]] void getskills(); //?se tornassi un iterator
 
     [[eosio::action]] void payperm(const name &item, const name &owner, const name &client, const asset &bill);
     [[eosio::action]] void payitem(const uint64_t &idpay, const name &user, const asset &quantity);
@@ -61,7 +105,7 @@ namespace eosio{
     using getSkill_action = action_wrapper<"getskills"_n, &RatingSystem::getskills>;
 
     using payperm_action = action_wrapper<"payperm"_n, &RatingSystem::payperm>;
-    //using payitem_action = action_wrapper<"payitem"_n, &RatingSystem::payitem>;
+    using payitem_action = action_wrapper<"payitem"_n, &RatingSystem::payitem>;
 
     //using getFunction_action = action_wrapper<"get_Function"_n, &RatingSystem::getFunction>;
     //using pushFunction_action = action_wrapper<"push_Function"_n, &RatingSystem::pushFunction>;

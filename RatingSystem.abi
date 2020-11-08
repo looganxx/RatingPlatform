@@ -26,8 +26,8 @@
             "base": "",
             "fields": [
                 {
-                    "name": "item",
-                    "type": "name"
+                    "name": "idpayment",
+                    "type": "uint64"
                 },
                 {
                     "name": "user",
