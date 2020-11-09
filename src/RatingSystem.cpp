@@ -118,11 +118,11 @@ namespace eosio{
     require_auth(user);
     check_user(user, get_first_receiver());
 
-    check(score >=0 && score<=10, "invalide score value");
+    check(score >0 && score<=10, "invalide score value");
 
     paymentsTable payments(get_first_receiver(), get_first_receiver().value);
     auto id = payments.find(idpayment);
-    check (id->payed ==true, "bill not payed");
+    check (id->paid ==true, "bill not paid");
     check(id->client == user, "you can't rate this item, this is not youre bill");
     name item = id->iname;
 
@@ -177,26 +177,17 @@ namespace eosio{
     }
   }
 
-  [[eosio::action]] void RatingSystem::delrate(const name &item, const name &user){
+  [[eosio::action]] void RatingSystem::delrate(const uint64_t &idpayment, const name &user)
+  {
     require_auth(user);
-    
-    itemsTable items(get_first_receiver(), get_first_receiver().value);
-    auto iter = items.find(item.value);
-    check(iter != items.end(), "item does not exists");
 
     check_user(user, get_first_receiver());
 
     ratingsTable rates(get_first_receiver(), get_first_receiver().value);
-    auto it = rates.get_index<"byitem"_n>();
-    auto i = it.find(item.value);
-    check(i != it.end(), "rate does not exists");
-    
-    while (i != it.end() && i->item == item && i->user != user){i++;}
-    check(i != it.end() && i->item == item && i->user == user, "rate does not exists");
-    uint64_t index = i->idrating;
-    auto el = rates.find(index);
-    rates.erase(el);
-      
+    auto it = rates.find(idpayment);
+    check(it != rates.end(), "rate does not exists");
+  
+    rates.erase(it);
   }
 
   [[eosio::action]] void RatingSystem::payperm(const name &item, const name &owner, const name &client, const asset &bill)
@@ -233,7 +224,7 @@ namespace eosio{
       row.iname = item;
       row.client = client;
       row.bill = bill;
-      row.payed = 0;
+      row.paid = 0;
     });
 
     //TODO mandare id all'utente
@@ -245,9 +236,9 @@ namespace eosio{
     /**
      * cerco se l'utente esiste ecc
      * controllo quantity se rispetta i valori
-     * cerco nella tabella payment e controllo che payed non sia true
+     * cerco nella tabella payment e controllo che paid non sia true
      * effettua pagamento
-     * setta a true payed
+     * setta a true paid
      */
 
     check_user(user, get_first_receiver());
@@ -255,7 +246,7 @@ namespace eosio{
     paymentsTable payments(get_first_receiver(), get_first_receiver().value);
     auto it = payments.find(idpay);
     check(it != payments.end(), "bill does not exists");
-    check (it->payed == false, "bill already payed");
+    check (it->paid == false, "bill already paid");
     check(it->bill == quantity, "please insert the correct value to pay");
     check(it->client == user, "you have not to pay");
 
@@ -265,23 +256,27 @@ namespace eosio{
 
     check_user(owner, get_first_receiver());
 
-    send_notify(owner, name{user}.to_string() + " has payed " + quantity.to_string() +
+    send_notify(owner, name{user}.to_string() + " has paid " + quantity.to_string() +
                            " to the bill with code " + to_string(idpay));
 
     token::transfer_action transfer("eosio.token"_n, {user, "active"_n});
     //trasferisco il denaro da user->owner
-    transfer.send(user, owner , quantity, "");
+    string memo = "bill: " + to_string(idpay) + ", item: " + name{it->iname}.to_string();
+    transfer.send(user, owner , quantity, memo);
     payments.modify(it, get_self(), [&](auto &row) {
-      row.payed = true;
+      row.paid = true;
     });
     
   }
  
-  [[eosio::action]] void RatingSystem::proviamo(const name &i)
+  [[eosio::action]] void RatingSystem::prova(const name &i)
   {
-    usersTable users(get_first_receiver(), get_first_receiver().value);
-    auto it_s = users.find(i.value);
-    users.erase(it_s);
+    userSkillsTable us(get_first_receiver(), get_first_receiver().value);
+
+    for (auto it = us.begin(); it != us.end();)
+    {
+      us.erase(it++);
+    }
 
     /*
     require_auth(user);

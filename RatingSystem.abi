@@ -78,8 +78,8 @@
             "base": "",
             "fields": [
                 {
-                    "name": "item",
-                    "type": "name"
+                    "name": "idpayment",
+                    "type": "uint64"
                 },
                 {
                     "name": "user",
@@ -197,7 +197,7 @@
                     "type": "asset"
                 },
                 {
-                    "name": "payed",
+                    "name": "paid",
                     "type": "bool"
                 }
             ]
@@ -225,7 +225,7 @@
             ]
         },
         {
-            "name": "proviamo",
+            "name": "prova",
             "base": "",
             "fields": [
                 {
@@ -350,8 +350,8 @@
             "ricardian_contract": ""
         },
         {
-            "name": "proviamo",
-            "type": "proviamo",
+            "name": "prova",
+            "type": "prova",
             "ricardian_contract": ""
         }
     ],

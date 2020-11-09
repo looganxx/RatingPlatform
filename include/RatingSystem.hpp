@@ -36,7 +36,7 @@ namespace eosio{
     [[eosio::action]] void deluser(const name& user);
 
     /**
-     * @brief   Allow an user to create his own item.
+     * @brief   Allows an user to create his own item.
      * 
      * @param item: New item's name.
      * @param user: Name of the account who wants to create the item.
@@ -52,44 +52,94 @@ namespace eosio{
      * @param item: Name of the item to deactivate.
      * @param owner:  Name of the item's owner. 
      * 
-     * @pre Owner has to be the item's holder
+     * @pre Owner has to be the item's holder.
      */
     [[eosio::action]] void delitem(const name &item, const name& owner);
 
     /**
-     * @brief Allows RS account to add a new skill in the skills DB
+     * @brief Allows RS account to add a new skill in the skills DB.
      * 
-     * @param skill 
+     * @param skill:  Name of the skill to add.
+     * 
+     * @pre Only the account that deploy the contract can call this action.
      */
     [[eosio::action]] void addskill(const name &skill);
-    [[eosio::action]] void getskills(); //?se tornassi un iterator
-
 
     /**
      * @brief 
      * 
-     * @param idpayment 
-     * @param user 
-     * @param score 
      */
-    [[eosio::action]] void addrate(const uint64_t &idpayment, const name& user, const uint64_t &score);
-    [[eosio::action]] void delrate(const name &item, const name &user);
+    [[eosio::action]] void getskills(); //?se tornassi un iterator
 
-    [[eosio::action]] void proviamo(const name &i);
-
-
+    /**
+     * @brief Allows an item's owner give to an user a permission to pay the service. The token will notified to the user who have to pay.
+     *        The boolean value "paid" will set to false.
+     * 
+     * @param item: Name of the item.
+     * @param owner:  Name of the item's owner who want grant the permission to pay to the user "client".
+     * @param client: Name of the user who will pay for the service.
+     * @param bill: Amount that the "client" will pay to "owner".
+     * 
+     * @pre The account "owner" has to own an item.
+     * @pre "owner" has to be different to "client".
+     */
     [[eosio::action]] void payperm(const name &item, const name &owner, const name &client, const asset &bill);
+
+    /**
+     * @brief An user that have to pay a bill call this action passing the value of the token and the amount to pay.
+     *        The boolean value "paid" will set to true.
+     * 
+     * @param idpay: The token emitted by the "payperm" action.
+     * @param user: The name of the account that have to pay the bill.
+     * @param quantity: The amount of the bill to pay.
+     * 
+     * @pre "user" has to own the token ("idpay")
+     * @pre Only the user that have the permission granted can pay the bill.
+     */
     [[eosio::action]] void payitem(const uint64_t &idpay, const name &user, const asset &quantity);
 
+    /**
+     * @brief Allows "user" to rate an item precedently paid using the same token used tu pay the item.
+     * 
+     * @param idpayment: The token emitted by the "payperm" action used also to pay the item.
+     * @param user: The name of the user who want to rate the item.
+     * @param score: The value to assing to the item rated. The "score" value has to be between 1 and 10.  
+     * 
+     * @pre The "user" had paid the owner of the item using the token.
+     */
+    [[eosio::action]] void addrate(const uint64_t &idpayment, const name& user, const uint64_t &score);
+
+    /**
+     * @brief Allows "user" to delete a rate.
+     * 
+     * @param idpayment: Token used to pay and to rate de item.
+     * @param user: Name of the user who made the rate.
+     */
+    [[eosio::action]] void delrate(const uint64_t &idpayment, const name &user);
+
+    [[eosio::action]] void prova(const name &i);
+
+    /**
+     * @brief Action used to notify to an user some informations.
+     * 
+     * @param user: Name of the user to whom you want to notify the action.
+     * @param message: Message to send to "user".
+     * 
+     * @pre Only the account that deploy the contract can call this action.
+     */
     [[eosio::action]] void notify(const name& user, const string& message)
     {
       require_auth(get_self());
       require_recipient(user);
     }
+
+    
     //da FunctionRegistry
     //[[eosio::action]] void getFunction(id);
     //[[eosio::action]] void pushFunction(function, id);
 
+
+    /*
     using prova_action = action_wrapper<"prova"_n, &RatingSystem::proviamo>;
 
     using newuser_action = action_wrapper<"newuser"_n, &RatingSystem::newuser>;
@@ -106,7 +156,7 @@ namespace eosio{
 
     using payperm_action = action_wrapper<"payperm"_n, &RatingSystem::payperm>;
     using payitem_action = action_wrapper<"payitem"_n, &RatingSystem::payitem>;
-
+    */
     //using getFunction_action = action_wrapper<"get_Function"_n, &RatingSystem::getFunction>;
     //using pushFunction_action = action_wrapper<"push_Function"_n, &RatingSystem::pushFunction>;
 
@@ -199,7 +249,7 @@ namespace eosio{
       name iname; //*FK
       name client; //*FK
       asset bill;
-      bool payed;
+      bool paid;
 
       uint64_t primary_key() const { return idpay; }
       uint64_t by_secondary() const { return iname.value; }
