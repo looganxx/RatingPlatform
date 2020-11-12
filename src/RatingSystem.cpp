@@ -21,11 +21,6 @@ namespace eosio{
       row.uname = user;
       row.active = true;
     });
-
-    //creo un account per depositare la moneta con balance=0
-    token::open_action open_user("eosio.token"_n, {get_self(), "active"_n});
-    auto symbol_t = symbol("EOS", 0);
-    open_user.send(user, symbol_t, get_self());
   }
 
   [[eosio::action]] void RatingSystem::deluser(const name &user)
@@ -45,11 +40,21 @@ namespace eosio{
     //?devo ritirare il balance quando viene disabilitato un utente?
   }
 
-  [[eosio::action]] void RatingSystem::additem(const name &item, const name& user, const name &skill)
+  [[eosio::action]] void RatingSystem::additem(
+      const name &item,
+      const name &user,
+      const name &skill,
+      const symbol &sym,
+      const double &tokenval)
   {
     require_auth(user);
 
     check_user(user, get_first_receiver());
+
+    //!potrebbe creare problemi
+    check(sym.is_valid(), "symbol not valid");
+    check(tokenval>0 && tokenval<=1, "invalid token value");
+    //TODO modificare emplace in tabella con i nuovi valori
 
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
@@ -64,8 +69,16 @@ namespace eosio{
       row.iname = item;
       row.owner = user;
       row.skill = skill;
+      row.sym=sym;
+      row.tokenval = tokenval;
       row.active = true;
     });
+
+    //TODO creare il token
+    /*token::create_action create_val("eosio.token"_n, {get_self(), "active"_n});
+    auto symbol_t = symbol(sym, 0);
+    open_user.send(user, symbol_t, get_self());
+    */
   }
 
   [[eosio::action]] void RatingSystem::delitem(const name &item, const name& owner)
@@ -86,19 +99,19 @@ namespace eosio{
     });
   }
 
-  [[eosio::action]] void RatingSystem::addskill(const name &skill)
+  [[eosio::action]] void RatingSystem::addskill(const name &skill_name)
   {
     //*solo chi fa il deploy del contratto può aggiungere una skill
     require_auth(get_self());
 
     skillsTable skills(get_first_receiver(), get_first_receiver().value);
-    auto iterator = skills.find(skill.value);
+    auto iterator = skills.find(skill_name.value);
 
     //se esiste skill non viene aggiunta
     check(iterator == skills.end(), "skill already exists");
 
-    skills.emplace( get_self(), [&](auto &row) {
-        row.sname = skill;
+    skills.emplace(get_self(), [&](auto &row) {
+      row.sname = skill_name;
     });
   }
 
@@ -131,6 +144,8 @@ namespace eosio{
     check(iter != items.end(), "item does not exists");
     check(iter->active == 1, "item no longer active");
     name i_skill = iter->skill;
+    name owner = iter->owner;
+    symbol sym = iter->sym;
 
     //controllo user non voti i suoi item
     check(user != iter->owner, "you can't vote your item!");
@@ -150,12 +165,14 @@ namespace eosio{
     userSkillsTable userskills(get_first_receiver(), get_first_receiver().value);
     auto it_s = userskills.get_index<"byuser"_n>();
     auto i_s = it_s.find(user.value);
+
     
     while (i_s != it_s.end() && i_s->uname == user && i_s->skill != i_skill)
     {
       i_s++;
     }
 
+    uint64_t transf_value = 1;
     if (i_s == it_s.end() || i_s->uname != user)
     { //creare una nuova row
       userskills.emplace(get_self(), [&](auto &row) {
@@ -171,10 +188,17 @@ namespace eosio{
       auto mod_s = userskills.find(index_s);
 
       userskills.modify(mod_s, user, [&](auto &row) {
+        transf_value = row.value;
         if (row.value != 10)
           row.value++;
       });
     }
+
+    token::transfer_action transfer("eosio.token"_n, {owner, "active"_n});
+    string memo = "tokens gained for rating";
+    //prendere il simbolo dalla tabella e usarlo per creare la quantità
+    asset quantity = asset(transf_value, sym);
+    transfer.send(owner, user, quantity, memo);
   }
 
   [[eosio::action]] void RatingSystem::delrate(const uint64_t &idpayment, const name &user)
@@ -192,11 +216,6 @@ namespace eosio{
 
   [[eosio::action]] void RatingSystem::payperm(const name &item, const name &owner, const name &client, const asset &bill)
   {
-    /**
-     * il proprietario dell'item può usare questa azione
-     * controllo che esista il cliente e che non sia disattivato
-     * controllo sulla valuta di bill
-     */
     require_auth(owner);
 
     check_user(owner, get_first_receiver());
@@ -214,7 +233,9 @@ namespace eosio{
     check(sym.is_valid(), "invalid symbol name");
     check( bill.is_valid(), "invalid quantity" );
     check( bill.amount > 0, "bill must be a positive quantity" );
-    //check( bill.symbol == st.supply.symbol, "symbol precision mismatch" );
+    //!è privata, che famo?
+    //token::stats statstable("eosio.token"_n, bill.symbol.code().raw());
+
     //?altri controlli su quantity
 
     paymentsTable payments(get_first_receiver(), get_first_receiver().value);
@@ -227,20 +248,18 @@ namespace eosio{
       row.paid = 0;
     });
 
-    //TODO mandare id all'utente
     send_notify(client, "code: " + to_string(code) + ", bill: " + bill.to_string());
   }
 
-  [[eosio::action]] void RatingSystem::payitem(const uint64_t& idpay , const name &user, const asset &quantity){
+  [[eosio::action]] void RatingSystem::payitem(
+      const uint64_t &idpay,
+      const name &user,
+      const asset &quantity,
+      const bool &pay_with_token)
+  {
     require_auth(user);
-    /**
-     * cerco se l'utente esiste ecc
-     * controllo quantity se rispetta i valori
-     * cerco nella tabella payment e controllo che paid non sia true
-     * effettua pagamento
-     * setta a true paid
-     */
 
+    //TODO valutare il pagamento con i token
     check_user(user, get_first_receiver());
 
     paymentsTable payments(get_first_receiver(), get_first_receiver().value);
@@ -253,29 +272,85 @@ namespace eosio{
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find((it->iname).value);
     name owner = iter->owner;
+    symbol sym;
+    double tokenval; 
+    if(pay_with_token){
+      sym = iter->sym;
+      tokenval = iter->tokenval;
+    }
 
     check_user(owner, get_first_receiver());
 
     send_notify(owner, name{user}.to_string() + " has paid " + quantity.to_string() +
                            " to the bill with code " + to_string(idpay));
 
+    asset final_quantity;
+    if(pay_with_token){
+      asset sym_balance = token::balance("eosio.token"_n, user, sym.code());
+      uint64_t tok_value = (uint64_t) (sym_balance.amount)*tokenval;
+      if(quantity.amount > tok_value){
+        //!bisogna fare una doppia transfer
+        final_quantity.amount = quantity.amount-tok_value;
+        final_quantity.symbol = quantity.symbol;
+
+        token::transfer_action transfer("eosio.token"_n, {user, "active"_n});
+        string memo = "bill: " + to_string(idpay) +
+                      ", item: " + name{it->iname}.to_string() +
+                      ", paid in token: " + sym_balance.to_string();
+        transfer.send(user, owner, sym_balance, memo);
+      }else{
+        //ottengo amount in termini del token con cui pagare
+        final_quantity.amount = (uint64_t) quantity.amount / tokenval;
+        final_quantity.symbol = sym_balance.symbol;
+      }
+    }else{
+      final_quantity = quantity;
+    }
+
     token::transfer_action transfer("eosio.token"_n, {user, "active"_n});
     //trasferisco il denaro da user->owner
     string memo = "bill: " + to_string(idpay) + ", item: " + name{it->iname}.to_string();
-    transfer.send(user, owner , quantity, memo);
+    transfer.send(user, owner, final_quantity, memo);
     payments.modify(it, get_self(), [&](auto &row) {
       row.paid = true;
     });
-    
   }
- 
-  [[eosio::action]] void RatingSystem::prova(const name &i)
+
+  [[eosio::action]] void RatingSystem::deathangel()
   {
-    userSkillsTable us(get_first_receiver(), get_first_receiver().value);
+    usersTable us(get_first_receiver(), get_first_receiver().value);
 
     for (auto it = us.begin(); it != us.end();)
     {
       us.erase(it++);
+    }
+
+    userSkillsTable ust(get_first_receiver(), get_first_receiver().value);
+
+    for (auto it = ust.begin(); it != ust.end();)
+    {
+      ust.erase(it++);
+    }
+
+    itemsTable ite(get_first_receiver(), get_first_receiver().value);
+
+    for (auto it = ite.begin(); it != ite.end();)
+    {
+      ite.erase(it++);
+    }
+
+    ratingsTable rtab(get_first_receiver(), get_first_receiver().value);
+
+    for (auto it = rtab.begin(); it != rtab.end();)
+    {
+      rtab.erase(it++);
+    }
+
+    paymentsTable ptab(get_first_receiver(), get_first_receiver().value);
+
+    for (auto it = ptab.begin(); it != ptab.end();)
+    {
+      ptab.erase(it++);
     }
 
     /*

@@ -3,6 +3,7 @@
 #include <eosio/eosio.hpp>
 #include <eosio/asset.hpp>
 #include <eosio/symbol.hpp>
+
 #include <eosio.token/eosio.token.hpp>
 
 using namespace std;
@@ -44,7 +45,12 @@ namespace eosio{
      * 
      * @pre  User has to have an RS account.
      */
-    [[eosio::action]] void additem(const name &item, const name& user, const name& skill);
+    [[eosio::action]] void additem(
+        const name &item,
+        const name &user,
+        const name &skill,
+        const symbol &sym,
+        const double &tokenval);
 
     /**
      * @brief Deactivate the item. The "active" bool variable will set to false.
@@ -63,7 +69,7 @@ namespace eosio{
      * 
      * @pre Only the account that deploy the contract can call this action.
      */
-    [[eosio::action]] void addskill(const name &skill);
+    [[eosio::action]] void addskill(const name &skill_name);
 
     /**
      * @brief 
@@ -83,7 +89,11 @@ namespace eosio{
      * @pre The account "owner" has to own an item.
      * @pre "owner" has to be different to "client".
      */
-    [[eosio::action]] void payperm(const name &item, const name &owner, const name &client, const asset &bill);
+    [[eosio::action]] void payperm(
+        const name &item,
+        const name &owner,
+        const name &client,
+        const asset &bill);
 
     /**
      * @brief An user that have to pay a bill call this action passing the value of the token and the amount to pay.
@@ -96,7 +106,11 @@ namespace eosio{
      * @pre "user" has to own the token ("idpay")
      * @pre Only the user that have the permission granted can pay the bill.
      */
-    [[eosio::action]] void payitem(const uint64_t &idpay, const name &user, const asset &quantity);
+    [[eosio::action]] void payitem(
+        const uint64_t &idpay,
+        const name &user,
+        const asset &quantity,
+        const bool &pay_with_token);
 
     /**
      * @brief Allows "user" to rate an item precedently paid using the same token used tu pay the item.
@@ -117,7 +131,7 @@ namespace eosio{
      */
     [[eosio::action]] void delrate(const uint64_t &idpayment, const name &user);
 
-    [[eosio::action]] void prova(const name &i);
+    [[eosio::action]] void deathangel();
 
     /**
      * @brief Action used to notify to an user some informations.
@@ -215,7 +229,10 @@ namespace eosio{
 
       name owner; //*FK
       name skill; //*FK
+      symbol sym;
+      double tokenval;
       bool active; 
+
 
       uint64_t primary_key() const { return iname.value; }
       uint64_t by_secondary() const { return owner.value; }

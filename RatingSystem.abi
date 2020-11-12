@@ -18,6 +18,14 @@
                 {
                     "name": "skill",
                     "type": "name"
+                },
+                {
+                    "name": "sym",
+                    "type": "symbol"
+                },
+                {
+                    "name": "tokenval",
+                    "type": "float64"
                 }
             ]
         },
@@ -44,7 +52,7 @@
             "base": "",
             "fields": [
                 {
-                    "name": "skill",
+                    "name": "skill_name",
                     "type": "name"
                 }
             ]
@@ -58,6 +66,11 @@
                     "type": "name"
                 }
             ]
+        },
+        {
+            "name": "deathangel",
+            "base": "",
+            "fields": []
         },
         {
             "name": "delitem",
@@ -129,6 +142,14 @@
                     "type": "name"
                 },
                 {
+                    "name": "sym",
+                    "type": "symbol"
+                },
+                {
+                    "name": "tokenval",
+                    "type": "float64"
+                },
+                {
                     "name": "active",
                     "type": "bool"
                 }
@@ -173,6 +194,10 @@
                 {
                     "name": "quantity",
                     "type": "asset"
+                },
+                {
+                    "name": "pay_with_token",
+                    "type": "bool"
                 }
             ]
         },
@@ -221,16 +246,6 @@
                 {
                     "name": "bill",
                     "type": "asset"
-                }
-            ]
-        },
-        {
-            "name": "prova",
-            "base": "",
-            "fields": [
-                {
-                    "name": "i",
-                    "type": "name"
                 }
             ]
         },
@@ -310,6 +325,11 @@
             "ricardian_contract": ""
         },
         {
+            "name": "deathangel",
+            "type": "deathangel",
+            "ricardian_contract": ""
+        },
+        {
             "name": "delitem",
             "type": "delitem",
             "ricardian_contract": ""
@@ -347,11 +367,6 @@
         {
             "name": "payperm",
             "type": "payperm",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "prova",
-            "type": "prova",
             "ricardian_contract": ""
         }
     ],
