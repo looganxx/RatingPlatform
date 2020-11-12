@@ -1,4 +1,4 @@
-#include <eosio.token/eosio.token.hpp>
+#include <rsf.token/rsf.token.hpp>
 
 namespace eosio {
 

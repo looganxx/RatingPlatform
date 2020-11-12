@@ -4,7 +4,7 @@
 #include <eosio/asset.hpp>
 #include <eosio/symbol.hpp>
 
-#include <eosio.token/eosio.token.hpp>
+#include <rsf.token/rsf.token.hpp>
 
 using namespace std;
 

@@ -69,16 +69,16 @@ namespace eosio{
       row.iname = item;
       row.owner = user;
       row.skill = skill;
-      row.sym=sym;
+      row.sym = sym;
       row.tokenval = tokenval;
       row.active = true;
     });
 
     //TODO creare il token
-    /*token::create_action create_val("eosio.token"_n, {get_self(), "active"_n});
+    rsftoken::create_action create_val("rsf"_n, {get_self(), "active"_n});
     auto symbol_t = symbol(sym, 0);
-    open_user.send(user, symbol_t, get_self());
-    */
+    create_val.send(user, symbol_t, get_self());
+    
   }
 
   [[eosio::action]] void RatingSystem::delitem(const name &item, const name& owner)
@@ -193,12 +193,13 @@ namespace eosio{
           row.value++;
       });
     }
-
+    //!trasferimento token dall'owner al client
+    /*
     token::transfer_action transfer("eosio.token"_n, {owner, "active"_n});
     string memo = "tokens gained for rating";
     //prendere il simbolo dalla tabella e usarlo per creare la quantità
     asset quantity = asset(transf_value, sym);
-    transfer.send(owner, user, quantity, memo);
+    transfer.send(owner, user, quantity, memo);*/
   }
 
   [[eosio::action]] void RatingSystem::delrate(const uint64_t &idpayment, const name &user)
@@ -286,14 +287,14 @@ namespace eosio{
 
     asset final_quantity;
     if(pay_with_token){
-      asset sym_balance = token::balance("eosio.token"_n, user, sym.code());
+      asset sym_balance = token::balance("rsf"_n, user, sym.code());
       uint64_t tok_value = (uint64_t) (sym_balance.amount)*tokenval;
       if(quantity.amount > tok_value){
         //!bisogna fare una doppia transfer
         final_quantity.amount = quantity.amount-tok_value;
         final_quantity.symbol = quantity.symbol;
 
-        token::transfer_action transfer("eosio.token"_n, {user, "active"_n});
+        token::transfer_action transfer("rsf"_n, {user, "active"_n});
         string memo = "bill: " + to_string(idpay) +
                       ", item: " + name{it->iname}.to_string() +
                       ", paid in token: " + sym_balance.to_string();
@@ -307,7 +308,7 @@ namespace eosio{
       final_quantity = quantity;
     }
 
-    token::transfer_action transfer("eosio.token"_n, {user, "active"_n});
+    rsftoken::transfer_action transfer("rsf"_n, {user, "active"_n});
     //trasferisco il denaro da user->owner
     string memo = "bill: " + to_string(idpay) + ", item: " + name{it->iname}.to_string();
     transfer.send(user, owner, final_quantity, memo);
