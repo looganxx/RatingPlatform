@@ -44,13 +44,13 @@ namespace eosio{
       const name &item,
       const name &user,
       const name &skill,
-      const symbol &sym,
+      const asset &max_supply,
       const double &tokenval)
   {
     require_auth(user);
 
     check_user(user, get_first_receiver());
-
+    const symbol& sym = max_supply.symbol;
     //!potrebbe creare problemi
     check(sym.is_valid(), "symbol not valid");
     check(tokenval>0 && tokenval<=1, "invalid token value");
@@ -75,10 +75,12 @@ namespace eosio{
     });
 
     //TODO creare il token
-    rsftoken::create_action create_val("rsf"_n, {get_self(), "active"_n});
-    auto symbol_t = symbol(sym, 0);
-    create_val.send(user, symbol_t, get_self());
     
+    rsftoken::create_action create_val("rsf.token"_n, {get_self(), "active"_n});
+    create_val.send(user, max_supply);
+
+    rsftoken::issue_action issue("rsf.token"_n, {user, "active"_n});
+    issue.send(user, max_supply, "issue token");
   }
 
   [[eosio::action]] void RatingSystem::delitem(const name &item, const name& owner)
@@ -172,7 +174,7 @@ namespace eosio{
       i_s++;
     }
 
-    uint64_t transf_value = 1;
+    uint64_t transf_value = 0;
     if (i_s == it_s.end() || i_s->uname != user)
     { //creare una nuova row
       userskills.emplace(get_self(), [&](auto &row) {
@@ -193,13 +195,17 @@ namespace eosio{
           row.value++;
       });
     }
-    //!trasferimento token dall'owner al client
-    /*
-    token::transfer_action transfer("eosio.token"_n, {owner, "active"_n});
-    string memo = "tokens gained for rating";
-    //prendere il simbolo dalla tabella e usarlo per creare la quantità
-    asset quantity = asset(transf_value, sym);
-    transfer.send(owner, user, quantity, memo);*/
+
+
+    //*trasferimento token dall'owner al client
+    if(transf_value != 0 ){
+      rsftoken::transfer_action transfer("rsf.token"_n, {owner, "active"_n});
+      string memo = "tokens gained for rating";
+      //prendere il simbolo dalla tabella e usarlo per creare la quantità
+      uint64_t precision = pow(10, sym.precision());
+      asset quantity = asset(transf_value * precision, sym);
+      transfer.send(owner, user, quantity, memo);
+    }
   }
 
   [[eosio::action]] void RatingSystem::delrate(const uint64_t &idpayment, const name &user)
@@ -234,6 +240,7 @@ namespace eosio{
     check(sym.is_valid(), "invalid symbol name");
     check( bill.is_valid(), "invalid quantity" );
     check( bill.amount > 0, "bill must be a positive quantity" );
+    check( bill.symbol == symbol("EOS", 2), "symbol precision mismatch");
     //!è privata, che famo?
     //token::stats statstable("eosio.token"_n, bill.symbol.code().raw());
 
@@ -282,19 +289,17 @@ namespace eosio{
 
     check_user(owner, get_first_receiver());
 
-    send_notify(owner, name{user}.to_string() + " has paid " + quantity.to_string() +
-                           " to the bill with code " + to_string(idpay));
-
     asset final_quantity;
     if(pay_with_token){
-      asset sym_balance = token::balance("rsf"_n, user, sym.code());
+      asset sym_balance = rsftoken::balance("rsf.token"_n, user, sym.code());
       uint64_t tok_value = (uint64_t) (sym_balance.amount)*tokenval;
+      check(tok_value != 0, "you haven't got this token");
       if(quantity.amount > tok_value){
         //!bisogna fare una doppia transfer
         final_quantity.amount = quantity.amount-tok_value;
         final_quantity.symbol = quantity.symbol;
 
-        token::transfer_action transfer("rsf"_n, {user, "active"_n});
+        rsftoken::transfer_action transfer("rsf.token"_n, {user, "active"_n});
         string memo = "bill: " + to_string(idpay) +
                       ", item: " + name{it->iname}.to_string() +
                       ", paid in token: " + sym_balance.to_string();
@@ -308,13 +313,18 @@ namespace eosio{
       final_quantity = quantity;
     }
 
-    rsftoken::transfer_action transfer("rsf"_n, {user, "active"_n});
+    rsftoken::transfer_action transfer("rsf.token"_n, {user, "active"_n});
     //trasferisco il denaro da user->owner
     string memo = "bill: " + to_string(idpay) + ", item: " + name{it->iname}.to_string();
     transfer.send(user, owner, final_quantity, memo);
     payments.modify(it, get_self(), [&](auto &row) {
       row.paid = true;
     });
+
+    //TODO personalizzare la notifica
+    send_notify(owner, name{user}.to_string() + " has paid " + quantity.to_string() +
+                           " to the bill with code " + to_string(idpay));
+
   }
 
   [[eosio::action]] void RatingSystem::deathangel()

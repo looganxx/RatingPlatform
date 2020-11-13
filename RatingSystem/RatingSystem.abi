@@ -20,8 +20,8 @@
                     "type": "name"
                 },
                 {
-                    "name": "sym",
-                    "type": "symbol"
+                    "name": "max_supply",
+                    "type": "asset"
                 },
                 {
                     "name": "tokenval",

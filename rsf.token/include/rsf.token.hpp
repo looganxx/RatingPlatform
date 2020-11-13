@@ -21,6 +21,8 @@ namespace eosio {
       public:
          using contract::contract;
 
+         rsftoken(name receiver, name code, datastream<const char *> ds) : contract(receiver, code, ds) {}
+
          /**
           * Allows `issuer` account to create a token in supply of `maximum_supply`. If validation is successful a new entry in statstable for token symbol scope gets created.
           *
@@ -111,13 +113,13 @@ namespace eosio {
             return ac.balance;
          }
 
-         using create_action = eosio::action_wrapper<"create"_n, &token::create>;
-         using issue_action = eosio::action_wrapper<"issue"_n, &token::issue>;
-         using retire_action = eosio::action_wrapper<"retire"_n, &token::retire>;
-         using transfer_action = eosio::action_wrapper<"transfer"_n, &token::transfer>;
-         using open_action = eosio::action_wrapper<"open"_n, &token::open>;
-         using close_action = eosio::action_wrapper<"close"_n, &token::close>;
-         using getbalance_action = eosio::action_wrapper<"balance"_n, &token::balance>;
+         using create_action = eosio::action_wrapper<"create"_n, &rsftoken::create>;
+         using issue_action = eosio::action_wrapper<"issue"_n, &rsftoken::issue>;
+         using retire_action = eosio::action_wrapper<"retire"_n, &rsftoken::retire>;
+         using transfer_action = eosio::action_wrapper<"transfer"_n, &rsftoken::transfer>;
+         using open_action = eosio::action_wrapper<"open"_n, &rsftoken::open>;
+         using close_action = eosio::action_wrapper<"close"_n, &rsftoken::close>;
+         using getbalance_action = eosio::action_wrapper<"balance"_n, &rsftoken::balance>;
 
       private:
          struct [[eosio::table]] account {

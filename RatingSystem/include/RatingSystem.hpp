@@ -3,8 +3,15 @@
 #include <eosio/eosio.hpp>
 #include <eosio/asset.hpp>
 #include <eosio/symbol.hpp>
+#include <math.h>
 
-#include <rsf.token/rsf.token.hpp>
+#include <rsf.token.hpp>
+
+/**
+ ** how to compile
+  eosio-cpp -abigen -I include -I ../rsf.token/include/ -R resource -contract RatingSystem -o RatingSystem.wasm src/RatingSystem.cpp 
+ * 
+ */
 
 using namespace std;
 
@@ -17,6 +24,7 @@ namespace eosio{
 
     //constructor
     RatingSystem(name receiver, name code, datastream<const char *> ds) : contract(receiver, code, ds){}
+    
 
     /**
      * @brief   Create a new user. If succesfully created, then a new entry in the user table is created.
@@ -49,7 +57,7 @@ namespace eosio{
         const name &item,
         const name &user,
         const name &skill,
-        const symbol &sym,
+        const asset &max_supply,
         const double &tokenval);
 
     /**

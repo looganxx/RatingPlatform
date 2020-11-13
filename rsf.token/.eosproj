@@ -1,12 +1,12 @@
 {
-  "main": "src/RatingSystem.cpp",
-  "contract": "RatingSystem",
+  "main": "src/rsf.token.cpp",
+  "contract": "rsf.token",
   "include": "",
   "resource": "",
   "cdt": "v1.7.0",
   "output": "",
   "scripts": {
-    "build": "eosio-cpp -abigen -I include -I ../rsf.token/include/ -R resource -contract RatingSystem -o RatingSystem.wasm src/RatingSystem.cpp"
+    "build": ""
   },
   "deploy": {
     "target": "both",
