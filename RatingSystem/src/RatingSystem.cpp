@@ -17,7 +17,7 @@ namespace eosio{
     check(iterator == users.end(), "user already exists");
 
     //*primo parametro: chi paga per lo storage del nuovo oggetto 
-    users.emplace( user , [&](auto &row) {
+    users.emplace( get_self() , [&](auto &row) {
       row.uname = user;
       row.active = true;
     });
@@ -34,7 +34,7 @@ namespace eosio{
     //se l'utente non è più attivo => exception
     check(iterator->active == true, "this user is no longer active");
 
-    users.modify(iterator, user, [&](auto &row) {
+    users.modify(iterator, same_payer, [&](auto &row) {
       row.active = false;
     });
     //?devo ritirare il balance quando viene disabilitato un utente?
@@ -73,8 +73,6 @@ namespace eosio{
       row.tokenval = tokenval;
       row.active = true;
     });
-
-    //TODO creare il token
     
     rsftoken::create_action create_val("rsf.token"_n, {get_self(), "active"_n});
     create_val.send(user, max_supply);
@@ -96,7 +94,7 @@ namespace eosio{
 
     //items.erase(iter);
     
-    items.modify(iter, owner, [&](auto &row) {
+    items.modify(iter, same_payer, [&](auto &row) {
       row.active = false;
     });
   }
@@ -177,7 +175,7 @@ namespace eosio{
     uint64_t transf_value = 0;
     if (i_s == it_s.end() || i_s->uname != user)
     { //creare una nuova row
-      userskills.emplace(get_self(), [&](auto &row) {
+      userskills.emplace(user, [&](auto &row) {
         row.iduskill = userskills.available_primary_key();
         row.uname = user;
         row.skill = i_skill;
@@ -189,7 +187,7 @@ namespace eosio{
       uint64_t index_s = i_s->iduskill;
       auto mod_s = userskills.find(index_s);
 
-      userskills.modify(mod_s, user, [&](auto &row) {
+      userskills.modify(mod_s, same_payer, [&](auto &row) {
         transf_value = row.value;
         if (row.value != 10)
           row.value++;
@@ -248,7 +246,7 @@ namespace eosio{
 
     paymentsTable payments(get_first_receiver(), get_first_receiver().value);
     uint64_t code = payments.available_primary_key();
-    payments.emplace(get_self(), [&](auto &row) {
+    payments.emplace(owner, [&](auto &row) {
       row.idpay = code;
       row.iname = item;
       row.client = client;
@@ -317,7 +315,7 @@ namespace eosio{
     //trasferisco il denaro da user->owner
     string memo = "bill: " + to_string(idpay) + ", item: " + name{it->iname}.to_string();
     transfer.send(user, owner, final_quantity, memo);
-    payments.modify(it, get_self(), [&](auto &row) {
+    payments.modify(it, same_payer, [&](auto &row) {
       row.paid = true;
     });
 

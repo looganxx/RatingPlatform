@@ -129,7 +129,10 @@ namespace eosio{
      * 
      * @pre The "user" had paid the owner of the item using the token.
      */
-    [[eosio::action]] void addrate(const uint64_t &idpayment, const name& user, const uint64_t &score);
+    [[eosio::action]] void addrate(
+        const uint64_t &idpayment,
+        const name &user,
+        const uint64_t &score);
 
     /**
      * @brief Allows "user" to delete a rate.
@@ -287,7 +290,7 @@ namespace eosio{
 
       name item;      //*FK
       name user;      //*FK
-      uint64_t score; //il più giovane
+      uint64_t score; 
 
       uint64_t primary_key() const { return idrating; }
       uint64_t by_secondary() const { return item.value; }
