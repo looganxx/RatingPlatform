@@ -16,8 +16,8 @@ namespace eosio{
     //se esiste l'utente => exception
     check(iterator == users.end(), "user already exists");
 
-    //*primo parametro: chi paga per lo storage del nuovo oggetto 
-    users.emplace( get_self() , [&](auto &row) {
+    //*primo parametro: chi paga per lo storage del nuovo oggetto
+    users.emplace(user, [&](auto &row) {
       row.uname = user;
       row.active = true;
     });
@@ -54,7 +54,6 @@ namespace eosio{
     //!potrebbe creare problemi
     check(sym.is_valid(), "symbol not valid");
     check(tokenval>0 && tokenval<=1, "invalid token value");
-    //TODO modificare emplace in tabella con i nuovi valori
 
     itemsTable items(get_first_receiver(), get_first_receiver().value);
     auto iter = items.find(item.value);
@@ -113,17 +112,6 @@ namespace eosio{
     skills.emplace(get_self(), [&](auto &row) {
       row.sname = skill_name;
     });
-  }
-
-  [[eosio::action]] void RatingSystem::getskills()
-  {
-    //?chiunque può chiedere il nome di una skill
-    require_auth(get_self());
-
-    skillsTable skills(get_first_receiver(), get_first_receiver().value);
-
-    //!se funziona così TOP
-    //return (skills)
   }
 
   [[eosio::action]] void RatingSystem::addrate(const uint64_t &idpayment, const name &user, const uint64_t &score)
@@ -315,13 +303,12 @@ namespace eosio{
     //trasferisco il denaro da user->owner
     string memo = "bill: " + to_string(idpay) + ", item: " + name{it->iname}.to_string();
     transfer.send(user, owner, final_quantity, memo);
-    payments.modify(it, same_payer, [&](auto &row) {
+    payments.modify(it, user, [&](auto &row) {
       row.paid = true;
     });
 
     //TODO personalizzare la notifica
-    send_notify(owner, name{user}.to_string() + " has paid " + quantity.to_string() +
-                           " to the bill with code " + to_string(idpay));
+    send_notify(owner, name{user}.to_string() + " has paid the bill with code " + to_string(idpay));
 
   }
 

@@ -80,12 +80,6 @@ namespace eosio{
     [[eosio::action]] void addskill(const name &skill_name);
 
     /**
-     * @brief 
-     * 
-     */
-    [[eosio::action]] void getskills(); //?se tornassi un iterator
-
-    /**
      * @brief Allows an item's owner give to an user a permission to pay the service. The token will notified to the user who have to pay.
      *        The boolean value "paid" will set to false.
      * 
