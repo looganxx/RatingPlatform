@@ -114,7 +114,10 @@ namespace eosio{
     });
   }
 
-  [[eosio::action]] void RatingSystem::addrate(const uint64_t &idpayment, const name &user, const uint64_t &score)
+  [[eosio::action]] void RatingSystem::addrate(
+    const uint64_t &idpayment, 
+    const name &user, 
+    const uint64_t &score)
   {
     require_auth(user);
     check_user(user, get_first_receiver());
@@ -226,7 +229,7 @@ namespace eosio{
     check(sym.is_valid(), "invalid symbol name");
     check( bill.is_valid(), "invalid quantity" );
     check( bill.amount > 0, "bill must be a positive quantity" );
-    check( bill.symbol == symbol("EOS", 2), "symbol precision mismatch");
+    check( bill.symbol == symbol("RSF", 2), "symbol precision mismatch");
     //!è privata, che famo?
     //token::stats statstable("eosio.token"_n, bill.symbol.code().raw());
 
@@ -253,7 +256,6 @@ namespace eosio{
   {
     require_auth(user);
 
-    //TODO valutare il pagamento con i token
     check_user(user, get_first_receiver());
 
     paymentsTable payments(get_first_receiver(), get_first_receiver().value);
