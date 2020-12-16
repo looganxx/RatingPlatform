@@ -51,7 +51,6 @@ namespace eosio{
 
     check_user(user, get_first_receiver());
     const symbol& sym = max_supply.symbol;
-    //!potrebbe creare problemi
     check(sym.is_valid(), "symbol not valid");
     check(tokenval>0 && tokenval<=1, "invalid token value");
 
@@ -192,7 +191,7 @@ namespace eosio{
       string memo = "tokens gained for rating";
       //prendere il simbolo dalla tabella e usarlo per creare la quantità
       uint64_t precision = pow(10, sym.precision());
-      asset quantity = asset(transf_value * precision, sym);
+      asset quantity = asset(transf_value * precision, sym); 
       transfer.send(owner, user, quantity, memo);
     }
   }
@@ -229,11 +228,7 @@ namespace eosio{
     check(sym.is_valid(), "invalid symbol name");
     check( bill.is_valid(), "invalid quantity" );
     check( bill.amount > 0, "bill must be a positive quantity" );
-    check( bill.symbol == symbol("RSF", 2), "symbol precision mismatch");
-    //!è privata, che famo?
-    //token::stats statstable("eosio.token"_n, bill.symbol.code().raw());
-
-    //?altri controlli su quantity
+    check( bill.symbol == symbol("RSF", 4), "symbol precision mismatch");
 
     paymentsTable payments(get_first_receiver(), get_first_receiver().value);
     uint64_t code = payments.available_primary_key();
@@ -279,12 +274,13 @@ namespace eosio{
 
     asset final_quantity;
     if(pay_with_token){
+      //convertire il coupon in RSF
       asset sym_balance = rsftoken::balance("rsf.token"_n, user, sym.code());
-      uint64_t tok_value = (uint64_t) (sym_balance.amount)*tokenval;
-      check(tok_value != 0, "you haven't got this token");
-      if(quantity.amount > tok_value){
-        //!bisogna fare una doppia transfer
-        final_quantity.amount = quantity.amount-tok_value;
+      double coup_conv = sym_balance.amount * tokenval;
+      uint64_t coup_conv_i = (uint64_t) (coup_conv + 0,5);
+      if(quantity.amount > coup_conv_i){
+        //preparo doppia transazione
+        final_quantity.amount = quantity.amount - coup_conv_i;
         final_quantity.symbol = quantity.symbol;
 
         rsftoken::transfer_action transfer("rsf.token"_n, {user, "active"_n});
@@ -293,8 +289,11 @@ namespace eosio{
                       ", paid in token: " + sym_balance.to_string();
         transfer.send(user, owner, sym_balance, memo);
       }else{
-        //ottengo amount in termini del token con cui pagare
-        final_quantity.amount = (uint64_t) quantity.amount / tokenval;
+        //sincogla transazione di coupon/token
+        //conversione bill in coupon
+        double bill_conv = quantity.amount / tokenval;
+        uint64_t bill_conv_i = (uint64_t)(bill_conv + 0, 5);
+        final_quantity.amount = bill_conv_i;
         final_quantity.symbol = sym_balance.symbol;
       }
     }else{

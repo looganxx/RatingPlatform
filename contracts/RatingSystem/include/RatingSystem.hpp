@@ -16,8 +16,8 @@
 using namespace std;
 
 namespace eosio{
-  class [[eosio::contract("RatingSystem")]] RatingSystem : public eosio::contract
-  {
+  
+  class [[eosio::contract("RatingSystem")]] RatingSystem : public eosio::contract{
 
   public:
     using contract::contract;
