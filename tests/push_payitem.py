@@ -10,7 +10,7 @@ import yaml
 ce = eospy.cleos.Cleos(url='https://jungle3.cryptolions.io:443')
 
 bill=0.5
-for i in range(1000):
+for i in range(1022, 1027):
   bill = ((bill + 0.5)%1)+1
   
   arguments = {

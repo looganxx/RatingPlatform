@@ -9,7 +9,7 @@ import yaml
 
 ce = eospy.cleos.Cleos(url='https://jungle3.cryptolions.io:443')
 
-for i in range(10,50):
+for i in range(1022, 1027):
 	rate = (i%8)+1
 	arguments = {
 			"idpayment": "{}".format(i),
