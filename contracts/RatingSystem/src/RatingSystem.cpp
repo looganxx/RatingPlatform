@@ -196,19 +196,6 @@ namespace eosio{
     }
   }
 
-  [[eosio::action]] void RatingSystem::delrate(const uint64_t &idpayment, const name &user)
-  {
-    require_auth(user);
-
-    check_user(user, get_first_receiver());
-
-    ratingsTable rates(get_first_receiver(), get_first_receiver().value);
-    auto it = rates.find(idpayment);
-    check(it != rates.end(), "rate does not exists");
-  
-    rates.erase(it);
-  }
-
   [[eosio::action]] void RatingSystem::payperm(const name &item, const name &owner, const name &client, const asset &bill)
   {
     require_auth(owner);
@@ -277,7 +264,7 @@ namespace eosio{
       //convertire il coupon in RSF
       asset sym_balance = rsftoken::balance("rsf.token"_n, user, sym.code());
       double coup_conv = sym_balance.amount * tokenval;
-      uint64_t coup_conv_i = (uint64_t) (coup_conv + 0,5);
+      uint64_t coup_conv_i = (uint64_t) (coup_conv + 0.5);
       if(quantity.amount > coup_conv_i){
         //preparo doppia transazione
         final_quantity.amount = quantity.amount - coup_conv_i;
@@ -289,10 +276,10 @@ namespace eosio{
                       ", paid in token: " + sym_balance.to_string();
         transfer.send(user, owner, sym_balance, memo);
       }else{
-        //sincogla transazione di coupon/token
+        //sinogla transazione di coupon/token
         //conversione bill in coupon
         double bill_conv = quantity.amount / tokenval;
-        uint64_t bill_conv_i = (uint64_t)(bill_conv + 0, 5);
+        uint64_t bill_conv_i = (uint64_t)(bill_conv + 0.5);
         final_quantity.amount = bill_conv_i;
         final_quantity.symbol = sym_balance.symbol;
       }
@@ -308,9 +295,102 @@ namespace eosio{
       row.paid = true;
     });
 
-    //TODO personalizzare la notifica
     send_notify(owner, name{user}.to_string() + " has paid the bill with code " + to_string(idpay));
+  }
 
+  [[eosio::action]] void RatingSystem::avg(const name& user, const name &item)
+  {
+    require_auth(user);
+    check_item(item, get_first_receiver());
+    ratingsTable ratings(get_first_receiver(), get_first_receiver().value);
+    auto it_r = ratings.get_index<"byitem"_n>();
+    auto i_r = it_r.find(item.value);
+
+    check(i_r != it_r.end(), "item never rated");
+
+    uint64_t count = 0;
+    double avg = 0;
+
+
+    while (i_r != it_r.end())
+    {
+      count++;
+      avg += i_r->score;
+      i_r++;
+    }
+
+    avg = avg/count;
+    send_notify(user, "the average of the " 
+      + name{item}.to_string() 
+      + " reviews is " 
+      + std::to_string(avg));
+  }
+
+  [[eosio::action]] void RatingSystem::weightedavg(const name& user, const name &item)
+  {
+    require_auth(user);
+    check_item(item, get_first_receiver());
+    ratingsTable ratings(get_first_receiver(), get_first_receiver().value);
+    auto it_r = ratings.get_index<"byitem"_n>();
+    auto i_r = it_r.find(item.value);
+    check(i_r != it_r.end(), "item never rated");
+
+    itemsTable items(get_first_receiver(), get_first_receiver().value);
+    auto iter = items.find(item.value);
+    name skill = iter->skill;
+
+    std::vector<pair<eosio::name, uint64_t>> users;
+
+    uint64_t weigth = 0;
+    uint64_t w_sum = 0;
+    double w_avg;
+
+
+    while (i_r != it_r.end())
+    {
+      name w_user = i_r->user;
+
+      auto it = std::find_if(users.begin(), users.end(), 
+        [&](const std::pair<eosio::name, uint64_t> &element) 
+        { return element.first == w_user; });
+
+      //user in
+      if (it != users.end()){
+        weigth += it->second;
+        w_sum += i_r->score * it->second;
+      }
+      else{ //add user
+        userSkillsTable userskills(get_first_receiver(), get_first_receiver().value);
+        auto it_s = userskills.get_index<"byuser"_n>();
+        auto i_s = it_s.find(w_user.value);
+
+        while (i_s != it_s.end() && i_s->uname == w_user && i_s->skill != skill)
+        {
+          i_s++;
+        }
+
+        if (i_s != it_s.end()){
+          pair<eosio::name, uint64_t> user_skill;
+          user_skill.first = w_user;
+          user_skill.second = i_s->value;
+
+          weigth += user_skill.second;
+          w_sum += i_r->score * user_skill.second;
+
+          users.push_back(user_skill);
+        }
+      }
+
+      i_r++;
+    }
+
+    w_avg = w_sum/weigth;
+
+
+    send_notify(user, "the weighted average of the " 
+      + name{item}.to_string() 
+      + " reviews is " 
+      + std::to_string(w_avg));
   }
 
   [[eosio::action]] void RatingSystem::deathangel()

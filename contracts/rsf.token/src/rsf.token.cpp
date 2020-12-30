@@ -9,7 +9,7 @@ namespace eosio {
 
       auto sym = maximum_supply.symbol;
       check(sym.is_valid(), "invalid symbol name");
-      check(sym.precision() == 4, "precision must be 4");
+      check(sym.precision() == 4, "symbol precision must be 4");
       check(maximum_supply.is_valid(), "invalid supply");
       check(maximum_supply.amount > 0, "max-supply must be positive");
 

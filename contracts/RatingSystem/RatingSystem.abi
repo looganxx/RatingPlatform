@@ -68,6 +68,20 @@
             ]
         },
         {
+            "name": "avg",
+            "base": "",
+            "fields": [
+                {
+                    "name": "user",
+                    "type": "name"
+                },
+                {
+                    "name": "item",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "deathangel",
             "base": "",
             "fields": []
@@ -82,20 +96,6 @@
                 },
                 {
                     "name": "owner",
-                    "type": "name"
-                }
-            ]
-        },
-        {
-            "name": "delrate",
-            "base": "",
-            "fields": [
-                {
-                    "name": "idpayment",
-                    "type": "uint64"
-                },
-                {
-                    "name": "user",
                     "type": "name"
                 }
             ]
@@ -119,11 +119,6 @@
                     "type": "name"
                 }
             ]
-        },
-        {
-            "name": "getskills",
-            "base": "",
-            "fields": []
         },
         {
             "name": "items",
@@ -306,6 +301,20 @@
                     "type": "bool"
                 }
             ]
+        },
+        {
+            "name": "weightedavg",
+            "base": "",
+            "fields": [
+                {
+                    "name": "user",
+                    "type": "name"
+                },
+                {
+                    "name": "item",
+                    "type": "name"
+                }
+            ]
         }
     ],
     "actions": [
@@ -325,6 +334,11 @@
             "ricardian_contract": ""
         },
         {
+            "name": "avg",
+            "type": "avg",
+            "ricardian_contract": ""
+        },
+        {
             "name": "deathangel",
             "type": "deathangel",
             "ricardian_contract": ""
@@ -335,18 +349,8 @@
             "ricardian_contract": ""
         },
         {
-            "name": "delrate",
-            "type": "delrate",
-            "ricardian_contract": ""
-        },
-        {
             "name": "deluser",
             "type": "deluser",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "getskills",
-            "type": "getskills",
             "ricardian_contract": ""
         },
         {
@@ -367,6 +371,11 @@
         {
             "name": "payperm",
             "type": "payperm",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "weightedavg",
+            "type": "weightedavg",
             "ricardian_contract": ""
         }
     ],

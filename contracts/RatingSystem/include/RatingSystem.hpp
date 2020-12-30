@@ -128,13 +128,6 @@ namespace eosio{
         const name &user,
         const uint64_t &score);
 
-    /**
-     * @brief Allows "user" to delete a rate.
-     * 
-     * @param idpayment: Token used to pay and to rate de item.
-     * @param user: Name of the user who made the rate.
-     */
-    [[eosio::action]] void delrate(const uint64_t &idpayment, const name &user);
 
     [[eosio::action]] void deathangel();
 
@@ -152,38 +145,10 @@ namespace eosio{
       require_recipient(user);
     }
 
-    
-    //da FunctionRegistry
-    //[[eosio::action]] void getFunction(id);
-    //[[eosio::action]] void pushFunction(function, id);
 
+    [[eosio::action]] void avg(const name& user, const name& item);
 
-    /*
-    using prova_action = action_wrapper<"prova"_n, &RatingSystem::proviamo>;
-
-    using newuser_action = action_wrapper<"newuser"_n, &RatingSystem::newuser>;
-    using deluser_action = action_wrapper<"deluser"_n, &RatingSystem::deluser>;
-
-    using additem_action = action_wrapper<"additem"_n, &RatingSystem::additem>;
-    using delitem_action = action_wrapper<"delitem"_n, &RatingSystem::delitem>;
-
-    using addrate_action = action_wrapper<"addrate"_n, &RatingSystem::addrate>;
-    using delrate_action = action_wrapper<"delrate"_n, &RatingSystem::delrate>;
-
-    using addSkill_action = action_wrapper<"addskill"_n, &RatingSystem::addskill>;
-    using getSkill_action = action_wrapper<"getskills"_n, &RatingSystem::getskills>;
-
-    using payperm_action = action_wrapper<"payperm"_n, &RatingSystem::payperm>;
-    using payitem_action = action_wrapper<"payitem"_n, &RatingSystem::payitem>;
-    */
-    //using getFunction_action = action_wrapper<"get_Function"_n, &RatingSystem::getFunction>;
-    //using pushFunction_action = action_wrapper<"push_Function"_n, &RatingSystem::pushFunction>;
-
-    /*static const struct item_s
-    {
-      name item;
-      uint64_t rating;
-    } item;*/
+    [[eosio::action]] void weightedavg(const name &user, const name &item);
 
   private:
     static void check_user(const name &user, const name& gfr)
