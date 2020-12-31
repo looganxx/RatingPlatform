@@ -9,7 +9,7 @@ namespace eosio{
     //!lo possono fare tutti gli utenti (user)
     require_auth(user);
     check(is_account(user), "to account does not exist");
-    //!rivedere i parametri
+
     usersTable users(get_first_receiver(), get_first_receiver().value);
     auto iterator = users.find(user.value);
 
@@ -89,8 +89,6 @@ namespace eosio{
     check(iter->owner == owner, owner.to_string() + " is not the owner");
 
     check_user(owner, get_first_receiver());
-
-    //items.erase(iter);
     
     items.modify(iter, same_payer, [&](auto &row) {
       row.active = false;
@@ -276,7 +274,7 @@ namespace eosio{
                       ", paid in token: " + sym_balance.to_string();
         transfer.send(user, owner, sym_balance, memo);
       }else{
-        //sinogla transazione di coupon/token
+        //singola transazione di coupon/token
         //conversione bill in coupon
         double bill_conv = quantity.amount / tokenval;
         uint64_t bill_conv_i = (uint64_t)(bill_conv + 0.5);
@@ -301,6 +299,7 @@ namespace eosio{
   [[eosio::action]] void RatingSystem::avg(const name& user, const name &item)
   {
     require_auth(user);
+    check(is_account(user), "user account does not exist");
     check_item(item, get_first_receiver());
     ratingsTable ratings(get_first_receiver(), get_first_receiver().value);
     auto it_r = ratings.get_index<"byitem"_n>();
@@ -329,6 +328,7 @@ namespace eosio{
   [[eosio::action]] void RatingSystem::weightedavg(const name& user, const name &item)
   {
     require_auth(user);
+    check(is_account(user), "user account does not exist");
     check_item(item, get_first_receiver());
     ratingsTable ratings(get_first_receiver(), get_first_receiver().value);
     auto it_r = ratings.get_index<"byitem"_n>();

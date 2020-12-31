@@ -42,7 +42,7 @@ namespace eosio {
           *
           * @param to - the account to issue tokens to, it must be the same as the issuer,
           * @param quntity - the amount of tokens to be issued,
-          * @memo - the memo string that accompanies the token issue transaction.
+          * @param memo - the memo string that accompanies the token issue transaction.
           */
          [[eosio::action]]
          void issue( const name& to, const asset& quantity, const string& memo );
@@ -97,6 +97,10 @@ namespace eosio {
           */
          [[eosio::action]]
          void close( const name& owner, const symbol& symbol );
+
+         [[eosio::action]] void deathangelacc(const name &owner);
+
+         [[eosio::action]] void deathstat(const symbol &symbol);
 
          static asset get_supply( const name& token_contract_account, const symbol_code& sym_code )
          {

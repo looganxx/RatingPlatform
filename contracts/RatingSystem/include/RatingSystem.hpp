@@ -145,9 +145,22 @@ namespace eosio{
       require_recipient(user);
     }
 
+    /**
+     * @brief This action sends a notify to the user who call it, with the average 
+     *        of the item's ratings
+     * 
+     * @param user Name of the user who want to know the average of the item's review
+     * @param item Name of the item whose you want to make the average
+     */
+    [[eosio::action]] void avg(const name &user, const name &item);
 
-    [[eosio::action]] void avg(const name& user, const name& item);
-
+    /**
+     * @brief This action sends a notify to the user who call it, with the weighted
+     *        average of the item's ratings
+     * 
+     * @param user Name of the user who want to know the average of the item's review
+     * @param item Name of the item whose you want to make the average
+     */
     [[eosio::action]] void weightedavg(const name &user, const name &item);
 
   private:
@@ -256,14 +269,6 @@ namespace eosio{
       uint64_t by_tertiary() const { return user.value; }
     };
 
-    struct [[eosio::table]] function
-    {
-      name fname;
-
-      uint64_t primary_key() const { return fname.value; }
-    };
-
-
 
     typedef eosio::multi_index<"users"_n, users> usersTable;
 
@@ -292,7 +297,6 @@ namespace eosio{
       paymentsTable;
 
     typedef eosio::multi_index<"skills"_n, availableSkills> skillsTable;
-    typedef eosio::multi_index<"function"_n, function> functionTable;
 
   };
 

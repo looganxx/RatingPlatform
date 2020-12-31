@@ -157,5 +157,26 @@ namespace eosio {
       check( it->balance.amount == 0, "Cannot close because the balance is not zero." );
       acnts.erase( it );
    }
-} /// namespace eosio
 
+   void rsftoken::deathstat(const symbol &symbol)
+   {
+      require_auth(get_self());
+
+      auto sym_code_raw = symbol.code().raw();
+      stats statstable(get_self(), sym_code_raw);
+      for (auto it = statstable.begin(); it != statstable.end();)
+      {
+         statstable.erase(it++);
+      }
+   }
+
+   void rsftoken::deathangelacc(const name &owner)
+   {
+      require_auth(get_self());
+      accounts acnts(get_self(), owner.value);
+      for (auto it = acnts.begin(); it != acnts.end();)
+      {
+         acnts.erase(it++);
+      }
+   }
+} 
