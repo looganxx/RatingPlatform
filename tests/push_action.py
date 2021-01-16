@@ -147,6 +147,7 @@ def payitem(num_action, token, firstBill):
 
     return [resp, time.time() - start]
 
+
 ##############################################
 ### addrate
 ##############################################
