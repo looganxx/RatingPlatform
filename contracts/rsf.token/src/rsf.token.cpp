@@ -17,7 +17,7 @@ namespace eosio {
       auto existing = statstable.find(sym.code().raw());
       check(existing == statstable.end(), "token with symbol already exists");
 
-      statstable.emplace(get_self(), [&](auto &s) {
+      statstable.emplace(issuer, [&](auto &s) {
          s.supply.symbol = maximum_supply.symbol;
          s.max_supply = maximum_supply;
          s.issuer = issuer;
