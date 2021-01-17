@@ -23,7 +23,7 @@ def main():
     if(sys.argv[1] not in dicAction):
         exit("use: " + str(dicAction))
 
-    dicNumTransaction = (1, 5, 10, 25, 50, 100)
+    dicNumTransaction = (1, 5, 10, 25, 50, 100, 500, 1000)
     if(int(sys.argv[2]) not in dicNumTransaction):
         exit("use: " + str(dicNumTransaction))
 
