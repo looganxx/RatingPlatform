@@ -60,7 +60,7 @@ def main():
           log.write("\n")
       blocksElapsed = blocksNum[len(blocksNum) - 1] - blocksNum[0]
       log.writelines(["first block: ", str(blocksNum[0]) , " - last block: ", str(blocksNum[len(blocksNum) - 1]) ,"\n"])
-      log.writelines(["block elapsed: ", str(blocksElapsed) , "\n"])
+      log.writelines(["blocks elapsed: ", str(blocksElapsed) , "\n"])
       #no duplicates in list 
       #to achieve the number of different blocks
       blocksNum = list(dict.fromkeys(blocksNum))
@@ -70,7 +70,7 @@ def main():
 
 
 ##############################################
-### payperm 1 1 5 5 5 5 5 5 5
+### payperm
 ##############################################
 def payperm(num_action):
     bill=0.50
