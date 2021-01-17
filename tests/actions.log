@@ -138,3 +138,25 @@ first block: 57308318 - last block: 57308327
 block elapsed: 9
 time elapsed: 5.597400188446045
 #########################
+##### 5 payperm performed ##### 
+alicersfacco: 409	
+alicersfacco: 409	
+alicersfacco: 409	
+alicersfacco: 409	
+alicersfacco: 409	
+first block: 57431902 - last block: 57431908
+block elapsed: 6
+number of different blocks: 5
+time elapsed: 4.034296989440918
+######################### 
+##### 5 payitem performed ##### 
+alicersfacco: -153	bobrsfaccoun: 153	
+alicersfacco: -153	bobrsfaccoun: 153	
+alicersfacco: -153	bobrsfaccoun: 153	
+alicersfacco: -153	bobrsfaccoun: 153	
+alicersfacco: -153	bobrsfaccoun: 153	
+first block: 57432125 - last block: 57432131
+block elapsed: 6
+number of different blocks: 5
+time elapsed: 3.876619577407837
+######################### 

@@ -61,6 +61,10 @@ def main():
       blocksElapsed = blocksNum[len(blocksNum) - 1] - blocksNum[0]
       log.writelines(["first block: ", str(blocksNum[0]) , " - last block: ", str(blocksNum[len(blocksNum) - 1]) ,"\n"])
       log.writelines(["block elapsed: ", str(blocksElapsed) , "\n"])
+      #no duplicates in list 
+      #to achieve the number of different blocks
+      blocksNum = list(dict.fromkeys(blocksNum))
+      log.writelines(["number of different blocks: ", str(len(blocksNum)) , "\n"])
       log.writelines(["time elapsed: ", str(performedAction[1]) , "\n"])
       log.write("######################### \n")
 
