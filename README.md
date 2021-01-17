@@ -3,7 +3,7 @@
 The Rating Platform is a degree internship. The purpose was to analize the EOS.IO blockchain, then develop a DApp consists of smart contract and deploy it on a testnet that performs the consensus protocol of EOS.IO.\
 This is my final project for Bachelor degree's thesis.
 
-## contracts
+## Contracts
 
 In contracts folder there is the code of two smart contract which togheter are the smart contract.\
 **RatingSystem** controls the whole application logic.\ 
@@ -17,7 +17,7 @@ To compile and deploy it, you first need to install **eosio.cdt**, the Contract 
   eosio-cpp -abigen -I include -I ./include -R resource -contract rsf.token -o rsf.token.wasm src/rsf.token.cpp 
 ```
 
-## deployment
+## Deployment
 
 Then you need to deploy the contract using two different account, because each account can deploy only one smart contract.\
 The deploy command is the one provided by eosio.cdt.
@@ -26,7 +26,7 @@ The deploy command is the one provided by eosio.cdt.
 cleos set contract
 ```
 
-## tests
+## Tests
 
 Tests fase use the **[eospy](https://github.com/eosnewyork/eospy)** which provides the basics functions for the connection with the testnet and the action performer.\\
 
