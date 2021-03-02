@@ -393,6 +393,7 @@ namespace eosio{
       + std::to_string(w_avg));
   }
 
+  /*
   [[eosio::action]] void RatingSystem::deathangel()
   {
     usersTable us(get_first_receiver(), get_first_receiver().value);
@@ -429,24 +430,6 @@ namespace eosio{
     {
       ptab.erase(it++);
     }
-
-    /*
-    require_auth(user);
-    //!addresses.available_primary_key();
-    //print("Hello ", name{user});
-    
-    itemsTable items(get_first_receiver(), get_first_receiver().value);
-    auto iter = items.get_index<"byowner"_n>();
-    //check(iter != items.end(), "mannaia");
-    auto next = iter.find(user.value);
-    //for (; next != iter.end(); next++){
-    print(next->iname.to_string() + " " + next->owner.to_string() + "\n");
-    next++;
-    print(next->iname.to_string() + " " + next->owner.to_string() + "\n");
-    next++;
-    print(next->iname.to_string() + " " + next->owner.to_string() + "\n");
-    next++;
-    print(next->iname.to_string() + " " + next->owner.to_string() + "\n");
-    //}*/
   }
+  */
 }

@@ -5,8 +5,10 @@ namespace eosio {
    void rsftoken::create(const name &issuer,
                          const asset &maximum_supply)
    {
-      require_auth("rsf"_n);
+      require_auth(issuer);
 
+      check_user(issuer);
+      
       auto sym = maximum_supply.symbol;
       check(sym.is_valid(), "invalid symbol name");
       check(sym.precision() == 4, "symbol precision must be 4");
@@ -157,7 +159,7 @@ namespace eosio {
       check( it->balance.amount == 0, "Cannot close because the balance is not zero." );
       acnts.erase( it );
    }
-
+   /*
    void rsftoken::deathstat(const symbol &symbol)
    {
       require_auth(get_self());
@@ -179,4 +181,5 @@ namespace eosio {
          acnts.erase(it++);
       }
    }
+   */
 } 

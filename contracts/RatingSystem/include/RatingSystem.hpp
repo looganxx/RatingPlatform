@@ -129,7 +129,7 @@ namespace eosio{
         const uint64_t &score);
 
 
-    [[eosio::action]] void deathangel();
+    //[[eosio::action]] void deathangel();
 
     /**
      * @brief Action used to notify to an user some informations.
@@ -167,6 +167,7 @@ namespace eosio{
     static void check_user(const name &user, const name& gfr)
     {
       usersTable users(gfr, gfr.value);
+      check(is_account(user), "user is not an account");
       auto iterator = users.find(user.value);
       //se non esiste l'utente => exception
       check(iterator != users.end(), "user does not exists");
